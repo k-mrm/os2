@@ -45,8 +45,8 @@ mb2parsebootinfo(MultiBootInfo *mb)
         MultiBootTagMmap *mmap = (MultiBootTagMmap *)tag;
 
         for (e = mmap->entries;
-            (char *)e < (char *)mmap + mmap->size;
-            e = (MultiBootMmapEntry *)((char *)e + mmap->entrysize)) {
+             (char *)e < (char *)mmap + mmap->size;
+             e = (MultiBootMmapEntry *)((char *)e + mmap->entrysize)) {
           if (e->type == MULTIBOOT_MEMORY_AVAILABLE)
             sysavailmem (e->addr, e->len);
           else if (e->type == MULTIBOOT_MEMORY_RESERVED)
@@ -69,4 +69,3 @@ mb2parsebootinfo(MultiBootInfo *mb)
     }
   }
 }
-

@@ -27,14 +27,15 @@ MEMSZ ?= 512
 ARCH ?= x86
 
 # Kernel objects (arch-specific)
-objs-1 += $(ARCH)/entry.o
-objs-1 += $(ARCH)/com.o $(ARCH)/main.o $(ARCH)/seg.o
-objs-1 += $(ARCH)/cpu.o
+objs-$(ARCH) += x86/entry.o
+objs-$(ARCH) += x86/com.o x86/main.o x86/seg.o
+objs-$(ARCH) += x86/cpu.o x86/pic-8259a.o x86/mm.o
 
 # Kernel objects
 objs-1 += printk.o string.o main.o console.o
 objs-1 += hpet.o sysmem.o panic.o
-objs-1 += multiboot.o
+objs-1 += multiboot.o acpi.o device.o timer.o
+objs-1 += mm.o kalloc.o
 
 .SUFFIXES : .c .S .o
 
@@ -46,8 +47,8 @@ objs-1 += multiboot.o
 	@echo CC $@
 	@$(CC) $(CFLAGS) -c $< -o $@
 
-$(elf): $(ARCH)/link.ld $(objs-1) $(CONFIG)
-	@$(LD) -n -Map $(map) -T $(ARCH)/link.ld -o $@ $(objs-1)
+$(elf): $(ARCH)/link.ld $(objs-1) $(objs-$(ARCH)) $(CONFIG)
+	@$(LD) -n -Map $(map) -T $(ARCH)/link.ld -o $@ $(objs-1) $(objs-$(ARCH))
 
 iso: $(iso)
 
@@ -58,7 +59,7 @@ $(iso): $(elf) grub.cfg
 	@grub-mkrescue -o $@ iso/
 
 clean:
-	$(RM) $(objs-1) $(elf) $(iso) $(img) $(map)
+	$(RM) $(objs-1) $(objs-$(ARCH)) $(elf) $(iso) $(img) $(map)
 	$(RM) -rf iso/
 
 #qemu-img: $(img)

@@ -19,6 +19,20 @@ Sysmem sysmem = {
 
 static void DEBUG sysmemdump (void);
 
+void INIT
+reservekernelarea (void)
+{
+  Phys kstartpa, kendpa;
+  ulong ksize;
+
+  kstartpa = V2P (__kstart);
+  kendpa   = V2P (__kend);
+  ksize = PAGEALIGN (kendpa - kstartpa);
+  KDBG ("kernel image @%p-%p\n", kstartpa, kendpa);
+
+  sysrsrvmem (kstartpa, ksize);
+}
+
 /*
  * __memblockoverlap
  * true: overlapped

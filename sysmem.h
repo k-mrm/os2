@@ -60,5 +60,6 @@ void sysrsrvmem (Phys base, u64 size);
 void *bootmemalloc (uint nbytes, uint align) INIT;
 
 bool reservedaddr (Phys addr);
+void reservekernelarea (void) INIT;
 
 #endif  // _SYSMEM_H

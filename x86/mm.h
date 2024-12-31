@@ -3,11 +3,11 @@
 
 #include "arch.h"
 
-#define SEG_NULL		0x00
-#define	SEG_KCODE32		0x08
-#define	SEG_KDATA32		0x10
-#define	SEG_KCODE64		0x18
-#define	SEG_KDATA64		0x20
+#define SEG_NULL      0x00
+#define SEG_KCODE32   0x08
+#define SEG_KDATA32   0x10
+#define SEG_KCODE64   0x18
+#define SEG_KDATA64   0x20
 
 #define PTE_P       (1 << 0)
 #define PTE_W       (1 << 1)
@@ -104,6 +104,18 @@ pnocache (void)
 }
 
 static inline ulong
+pnormal (void)
+{
+  return 0;
+}
+
+static inline ulong
+pdevice (void)
+{
+  return 0;
+}
+
+static inline PTE
 pteleaf (Phys pa, ulong archflags)
 {
   return (pa & PTE_PA_MASK) | archflags | PTE_P;
@@ -131,6 +143,11 @@ P2V (Phys pa)
 #define IS_KERN_RODATA(_va)   ((ulong)__rodata <= (ulong)(_va) && (ulong)(_va) < (ulong)__rodata_e)
 #define IS_KINIT(_va)         ((ulong)__kinit <= (ulong)(_va) && (ulong)(_va) < (ulong)__kinit_e)
 
-#endif  // __ASSEMBLER__
+typedef struct Vas    Vas;
 
+void switchvas (Vas *vas);
+void killbootmap (void);
+void x86mminit (void);
+
+#endif  // __ASSEMBLER__
 #endif  // _ARCH_MM_H
