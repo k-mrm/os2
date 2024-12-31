@@ -4,6 +4,7 @@
 #include <printk.h>
 #include <kalloc.h>
 #include <timer.h>
+#include <device.h>
 #include <x86/arch.h>
 
 void NORETURN
@@ -13,6 +14,8 @@ kernelmain (void)
   kallocinitearly (0x0, 1 * GiB);
   kernelmap ();
   kallocinit ();
+
+  devprobe ("timer");
 
   KDBG ("sleeptest\n");
   msleep (1000);

@@ -2,6 +2,10 @@
 #include <compiler.h>
 #include <device.h>
 #include <timer.h>
+#include <string.h>
+
+#define FOREACH_DEVICE(_dev)  \
+  for (_dev = devs; _dev < &devs[cdevs]; _dev++)
 
 static Device devs[256];
 static int cdevs = 0;
@@ -30,11 +34,25 @@ regdevice (char *ty, char *name, Bus *bus, Driver *drv, Device *parent,
   dev->driver   = drv;
   dev->priv     = priv;
   priv->device  = dev;
+  return 0;
 
   if (dev->driver->probe)
     return dev->driver->probe (dev);
   else
     return -1;
+}
+
+void
+devprobe (char *type)
+{
+  Device *dev;
+
+  FOREACH_DEVICE (dev) {
+    if (strcmp (dev->type, type) == 0) {
+      if (dev->driver->probe)
+        dev->driver->probe (dev);
+    }
+  }
 }
 
 int

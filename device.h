@@ -45,6 +45,7 @@ struct Bus {
   DEVICE_STRUCT;
 };
 
+void devprobe (char *type);
 int regdevice (char *ty, char *name, Bus *bus, Driver *drv, Device *parent, DeviceStruct *priv);
 int regbus (char *name, Bus *parent);
 

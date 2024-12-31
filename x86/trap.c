@@ -226,7 +226,7 @@ x86pagefault (X86Trapframe *tf)
   ulong faultaddr = cr2 ();
 
   KDBG ("page fault @%p (%p)\n", tf->rip, faultaddr);
-
+  panic ("gg");
   /*
   pf.FaultAddr = faultaddr;
   pf.Wr = !!(tf->Errcode & (1 << 1));
