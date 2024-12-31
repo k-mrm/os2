@@ -29,10 +29,11 @@ ARCH ?= x86
 # Kernel objects (arch-specific)
 objs-1 += $(ARCH)/entry.o
 objs-1 += $(ARCH)/com.o $(ARCH)/main.o $(ARCH)/seg.o
+objs-1 += $(ARCH)/cpu.o
 
 # Kernel objects
 objs-1 += printk.o string.o main.o console.o
-objs-1 += hpet.o
+objs-1 += hpet.o sysmem.o panic.o
 objs-1 += multiboot.o
 
 .SUFFIXES : .c .S .o

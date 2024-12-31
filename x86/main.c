@@ -10,6 +10,7 @@ x86main (MultiBootInfo *mb)
 {
   serialportinit ();
   mb2parsebootinfo (mb);
+  x86cpuinit ();
 
   for (;;)
     HLT;

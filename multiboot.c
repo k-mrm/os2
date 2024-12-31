@@ -2,6 +2,7 @@
 #include <compiler.h>
 #include <printk.h>
 #include <multiboot.h>
+#include <sysmem.h>
 
 static void *xsdp = NULL;
 static void *rsdp = NULL;
@@ -46,12 +47,10 @@ mb2parsebootinfo(MultiBootInfo *mb)
         for (e = mmap->entries;
             (char *)e < (char *)mmap + mmap->size;
             e = (MultiBootMmapEntry *)((char *)e + mmap->entrysize)) {
-          /*
           if (e->type == MULTIBOOT_MEMORY_AVAILABLE)
-            NewMem(e->addr, e->len);
+            sysavailmem (e->addr, e->len);
           else if (e->type == MULTIBOOT_MEMORY_RESERVED)
-            ReserveMem(e->addr, e->len);
-            */
+            sysrsrvmem (e->addr, e->len);
         }
         break;
       }
