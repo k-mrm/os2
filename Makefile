@@ -30,6 +30,7 @@ ARCH ?= x86
 objs-$(ARCH) += x86/entry.o
 objs-$(ARCH) += x86/com.o x86/main.o x86/seg.o
 objs-$(ARCH) += x86/cpu.o x86/pic-8259a.o x86/mm.o
+objs-$(ARCH) += x86/trap-handler.o x86/trap.o
 
 # Kernel objects
 objs-1 += printk.o string.o main.o console.o

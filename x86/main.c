@@ -18,6 +18,7 @@ x86main (MultiBootInfo *mb)
   reservekernelarea ();
   x86cpuinit ();
   x86mminit ();
+  x86trapinit ();
   initpic8259a ();
   acpiinit ();
 
