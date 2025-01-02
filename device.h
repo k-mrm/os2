@@ -46,6 +46,8 @@ struct Bus {
 };
 
 void devprobe (char *type);
+int regdevicemycpu (char *ty, char *name, Bus *bus, Driver *drv, Device *parent, DeviceStruct *priv);
+int regdevicecpu (int id, char *ty, char *name, Bus *bus, Driver *drv, Device *parent, DeviceStruct *priv);
 int regdevice (char *ty, char *name, Bus *bus, Driver *drv, Device *parent, DeviceStruct *priv);
 int regbus (char *name, Bus *parent);
 

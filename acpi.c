@@ -4,6 +4,7 @@
 #include <string.h>
 #include <acpi.h>
 #include <hpet.h>
+#include <x86/apic.h>
 #include <x86/mm.h>
 
 #define KPREFIX     "acpi:"
@@ -171,6 +172,7 @@ apicparselocalx2apic (MadtLocalx2apic *x2apic)
 {
   KLOG ("x2apic Processor %d found %d %d\n",
         x2apic->x2apicid, x2apic->acpiid, x2apic->flags);
+  x2apicinit (x2apic->x2apicid);
 }
 
 static void INIT
@@ -179,6 +181,7 @@ apicparselocalapic (MadtLocalapic *apic)
   if (!(apic->flags & 1))
     return;
   KLOG ("Processor %d(%d) found\n", apic->procid, apic->apicid);
+  xapicinit (apic->apicid);
 }
 
 static void INIT

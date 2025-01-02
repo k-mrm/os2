@@ -41,6 +41,15 @@ usleep (uint usec)
 }
 
 int
+eventtimerirq (Irq *irq)
+{
+  Device      *dev = irq->device;
+  EventTimer  *et  = dev->priv; 
+
+  return et->irqhandler (et, irq);
+}
+
+int
 probeevtimer (Device *dev)
 {
   EventTimer *et = (EventTimer *)dev->priv;
@@ -50,6 +59,7 @@ probeevtimer (Device *dev)
   } else {
     ;
   }
+  return 0;
 }
 
 int

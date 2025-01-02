@@ -15,7 +15,9 @@ kernelmain (void)
   kernelmap ();
   kallocinit ();
 
+  devprobe ("irqchip");
   devprobe ("timer");
+  devprobe ("eventtimer");
 
   KDBG ("sleeptest\n");
   msleep (1000);
@@ -24,6 +26,8 @@ kernelmain (void)
   KDBG ("2 ");
   msleep (1000);
   KDBG ("3\n");
+
+  INTR_ENABLE;
 
   for (;;)
     HLT;

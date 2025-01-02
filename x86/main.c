@@ -16,6 +16,7 @@ x86main (MultiBootInfo *mb)
   // In x86-64, First 1MB is reserved
   sysrsrvmem (0x0, 0x100000);
   reservekernelarea ();
+  gdtinit ();
   x86cpuinit ();
   x86mminit ();
   x86trapinit ();

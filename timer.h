@@ -4,6 +4,7 @@
 #include <types.h>
 #include <compiler.h>
 #include <device.h>
+#include <irq.h>
 
 typedef struct Timer      Timer;
 typedef struct EventTimer EventTimer;
@@ -22,10 +23,10 @@ struct EventTimer {
   bool  global;
   uint  (*getperiod) (EventTimer *et);
   void  (*setperiod) (EventTimer *et, uint ms);
-
-  int   (*irqhandler) (EventTimer *et);
-  // IRQSOURCE	*irq;
+  int   (*irqhandler) (EventTimer *et, Irq *irq);
 };
+
+int eventtimerirq (Irq *irq);
 
 int probeevtimer (Device *dev);
 int probetimer (Device *dev);
