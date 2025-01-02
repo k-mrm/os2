@@ -21,10 +21,12 @@ struct Irq {
   IrqChip *chip;
   Device  *device;
   int     (*handler) (Irq *irq);
+  int     (*enable) (Irq *irq);
+  int     (*disable) (Irq *irq);
 };
 
 int newirq (Device *dev, int irqno, bool priv, int (*handler) (Irq *irq));
 int handleirq (int irqno);
-void irqinit (void) INIT;
+int probeirqchip (Device *dev);
 
 #endif  // _IRQ_H

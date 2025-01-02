@@ -131,7 +131,12 @@ apicack (Irq *irq)
 static void
 apiceoi (Irq *irq)
 {
-  ;
+  Device      *dev  = irq->device;
+  EventTimer  *et   = dev->priv;
+  LapicTimer  *lt   = et->priv;
+  Apic        *apic = lt->apic;
+
+  apic->ops->write (apic, EOI, 0);
 }
 
 static uint
@@ -151,8 +156,8 @@ apictimersetperiod (EventTimer *et, uint ms)
 static int
 apictimerirq (EventTimer *et, Irq *irq)
 {
-  KLOG ("APIC TIMER IRQ\n");
-  return -1;
+  KLOG ("apic timer irq\n");
+  return 0;
 }
 
 static EventTimer lapictimer = {
@@ -203,12 +208,28 @@ setspiv (Apic *apic)
   apic->ops->write (apic, SPIV, spiv);
 }
 
+static void INIT
+apictimerinit (Apic *apic)
+{
+  // timer = malloc (sizeof *timer);
+  LapicTimer *timer = alloc ();
+  if (!timer) {
+    KWARN("cannot initialize lapic timer\n");
+    return -1;
+  }
+
+  timer->apic = apic;
+
+  lapictimer.priv = timer;
+
+  regdevicemycpu ("eventtimer", "LAPICTimer", NULL, &apictimerdriver, NULL, (DeviceStruct *)&lapictimer);
+}
+
 static int INIT
 apicprobe (Device *dev)
 {
   IrqChip     *irqchip  = (IrqChip *)dev->priv;
   Apic        *apic     = (Apic *)irqchip->priv;
-  LapicTimer  *timer;
 
   if (apic->ops->probe (apic) < 0)
     return -1;
@@ -220,20 +241,8 @@ apicprobe (Device *dev)
   apic->ops->write (apic, TPR, 0);
 
   enableapic (dev);
-
-  // timer = malloc (sizeof *timer);
-  timer = alloc ();
-  if (!timer) {
-    KWARN("cannot initialize lapic timer\n");
-    return -1;
-  }
-
-  timer->apic = apic;
-
-  lapictimer.priv = timer;
-
-  regdevicemycpu ("eventtimer", "LAPICTimer", NULL, &apictimerdriver, NULL, (DeviceStruct *)&lapictimer);
-  return 0;
+  apictimerinit (apic);
+  return probeirqchip (dev);
 }
 
 static Driver apicdrv = {

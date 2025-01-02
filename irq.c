@@ -7,17 +7,32 @@
 
 #include <printk.h>
 
+static IrqChip  *myirqchip;
+
+static Irq irqs[256];
+static int nirq = 0;
+
+static Irq *
+allocirq (void)
+{
+  return &irqs[nirq++];
+}
+
 static Irq *
 getirq (int irqno)
 {
-  // TODO
+  Irq *i;
+  for (i = irqs; i < &irqs[nirq]; i++) {
+    if (i->irqno == irqno)
+      return i;
+  }
   return NULL;
 }
 
 int
 newirq (Device *dev, int irqno, bool priv, int (*handler) (Irq *irq))
 {
-  Irq *irq = alloc ();   // TODO: malloc
+  Irq *irq = allocirq ();
   if (!irq)
     return -1;
   if (irqno < 0)
@@ -25,9 +40,9 @@ newirq (Device *dev, int irqno, bool priv, int (*handler) (Irq *irq))
     return -1;
 
   if (priv)
-    irq->chip = NULL;
+    irq->chip = myirqchip;
   else
-    irq->chip = NULL;
+    irq->chip = myirqchip;
 
   irq->irqno    = irqno;
   irq->device   = dev;
@@ -51,7 +66,11 @@ handleirq (int irqno)
   return ret;
 }
 
-void INIT
-IrqInit(void)
+int
+probeirqchip (Device *dev)
 {
+  IrqChip *irqchip = (IrqChip *)dev->priv;
+  myirqchip = irqchip;
+  KLOG ("using irqchip: %s\n", dev->name);
+  return 0;
 }

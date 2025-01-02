@@ -46,6 +46,7 @@ eventtimerirq (Irq *irq)
   Device      *dev = irq->device;
   EventTimer  *et  = dev->priv; 
 
+  KLOG ("eventtimer irq!\n");
   return et->irqhandler (et, irq);
 }
 

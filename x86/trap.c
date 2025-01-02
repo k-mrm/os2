@@ -249,10 +249,9 @@ trap (X86Trapframe *tf)
     case E_PF: x86pagefault (tf); break;
     case E_GP: panic ("GP");
     default:
-      panic ("interrupt %d\n", tf->trapno);
-      // err = x86interrupt (tf);
-      // if (err)
-         // panic ("unknown trap");
+      int err = handleirq (tf->trapno);
+      if (err)
+        panic ("unknown trap");
       break;
   }
 }
