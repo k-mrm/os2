@@ -60,9 +60,10 @@ handleirq (int irqno)
     return -1;
 
   irq->chip->ack (irq);
-  ret = irq->handler (irq);
+
   irq->chip->eoi (irq);
 
+  ret = irq->handler (irq);
   return ret;
 }
 

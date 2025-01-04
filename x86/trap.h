@@ -28,7 +28,7 @@
 
 typedef struct Gatedesc     Gatedesc;
 typedef enum Gatetype       Gatetype;
-typedef struct X86Trapframe X86Trapframe;
+typedef struct Trapframe    Trapframe;
 
 enum Gatetype {
   GATEDESC_64_INTR = 0xe,
@@ -52,7 +52,7 @@ struct Gatedesc {
   u32 _rsrv1;
 } PACKED;
 
-struct X86Trapframe {
+struct Trapframe {
   u64 rax;
   u64 rbx;
   u64 rcx;
@@ -79,5 +79,6 @@ struct X86Trapframe {
 } PACKED;
 
 void x86trapinit (void) INIT;
+extern void trapret (void);
 
 #endif  // _X86_TRAP_H

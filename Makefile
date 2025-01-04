@@ -32,12 +32,13 @@ objs-x86 += x86/com.o x86/main.o x86/seg.o
 objs-x86 += x86/cpu.o x86/pic-8259a.o x86/mm.o
 objs-x86 += x86/trap-handler.o x86/trap.o
 objs-x86 += x86/apic.o x86/xapic.o x86/x2apic.o
+objs-x86 += x86/cswitch.o
 
 # Kernel objects
 objs-1 += printk.o string.o main.o console.o
 objs-1 += hpet.o sysmem.o panic.o
 objs-1 += multiboot.o acpi.o device.o timer.o
-objs-1 += mm.o kalloc.o irq.o
+objs-1 += mm.o kalloc.o irq.o proc.o cpu.o
 
 .SUFFIXES : .c .S .o
 

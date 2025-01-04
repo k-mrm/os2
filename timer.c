@@ -3,6 +3,7 @@
 #include <timer.h>
 #include <panic.h>
 #include <printk.h>
+#include <proc.h>
 #include <x86/cpu.h>
 
 #define MSEC2USEC	1000
@@ -45,9 +46,13 @@ eventtimerirq (Irq *irq)
 {
   Device      *dev = irq->device;
   EventTimer  *et  = dev->priv; 
+  int         ret;
 
-  KLOG ("eventtimer irq!\n");
-  return et->irqhandler (et, irq);
+  ret = et->irqhandler (et, irq);
+
+  schedule ();
+
+  return ret;
 }
 
 int

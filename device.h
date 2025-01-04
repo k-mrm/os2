@@ -14,25 +14,23 @@ struct Driver {
   char    *name;
   char    *description;
 
-  int     (*probe)(Device *);
-  void    (*disconnect)(Device *);
-  int     (*reconnect)(Device *);
-  void    (*suspend)(Device *);
-  void    (*resume)(Device *);
+  int     (*probe) (Device *);
+  void    (*disconnect) (Device *);
+  int     (*reconnect) (Device *);
+  void    (*suspend) (Device *);
+  void    (*resume) (Device *);
 
   char    *param;
 };
 
 struct Device {
-  Device      *parent;
-  char        *type;
-  char        *name;
+  Device    *parent;
+  char      *type;
+  char      *name;
 
-  Bus         *bus;
-  Driver      *driver;
-  void        *priv;     // private device information
-
-  // Log         *logger;
+  Bus       *bus;
+  Driver    *driver;
+  void      *priv;     // private device information
 };
 
 struct DeviceStruct {
@@ -46,6 +44,7 @@ struct Bus {
 };
 
 void devprobe (char *type);
+void mydevprobe (char *type);
 int regdevicemycpu (char *ty, char *name, Bus *bus, Driver *drv, Device *parent, DeviceStruct *priv);
 int regdevicecpu (int id, char *ty, char *name, Bus *bus, Driver *drv, Device *parent, DeviceStruct *priv);
 int regdevice (char *ty, char *name, Bus *bus, Driver *drv, Device *parent, DeviceStruct *priv);

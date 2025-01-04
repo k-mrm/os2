@@ -21,6 +21,8 @@ traphandler:
   movq  %rsp, %rdi
   call  trap
   
+.global trapret
+trapret:
   popq  %rax
   popq  %rbx
   popq  %rcx

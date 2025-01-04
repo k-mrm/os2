@@ -87,6 +87,12 @@ devprobe (char *type)
         dev->driver->probe (dev);
     }
   }
+}
+
+void
+mydevprobe (char *type)
+{
+  Device *dev;
   FOREACH_MY_DEVICE (dev) {
     if (strcmp (dev->type, type) == 0) {
       if (dev->driver->probe)

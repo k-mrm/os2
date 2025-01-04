@@ -42,6 +42,8 @@
 #define IA32_APIC_BASE_APIC_GLOBAL_ENABLE 0x800
 #define IA32_APIC_BASE_APIC_BASE_MASK     0xfffffffffffff000ull
 
+#define EFLAGS_IF             (1 << 9)
+
 #ifndef __ASSEMBLER__
 
 #include <types.h>

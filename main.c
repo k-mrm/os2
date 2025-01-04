@@ -5,6 +5,8 @@
 #include <kalloc.h>
 #include <timer.h>
 #include <device.h>
+#include <proc.h>
+#include <cpu.h>
 #include <x86/arch.h>
 
 void NORETURN
@@ -14,18 +16,24 @@ kernelmain (void)
   kallocinitearly (0x0, 1 * GiB);
   kernelmap ();
   kallocinit ();
-
+  regcpu (0);     // FIXME
   devprobe ("irqchip");
   devprobe ("timer");
   devprobe ("eventtimer");
+  devprobe ("network");
+  initprocess ();
+  spawn ("kidle", NULL, idleprocess, NULL);
+  apmain ();
+}
 
-  KDBG ("sleeptest\n");
-  msleep (1000);
-  KDBG ("1 ");
-  msleep (1000);
-  KDBG ("2 ");
-  msleep (1000);
-  KDBG ("3\n");
+void NORETURN
+apmain (void)
+{
+  mydevprobe ("cpu");
+  mydevprobe ("irqchip");
+  mydevprobe ("timer");
+  mydevprobe ("eventtimer");
+  initkernelproc ();
 
   INTR_ENABLE;
 

@@ -220,7 +220,7 @@ x86trapinit (void)
 }
 
 static void
-x86pagefault (X86Trapframe *tf)
+x86pagefault (Trapframe *tf)
 {
   // PAGEFAULT pf;
   ulong faultaddr = cr2 ();
@@ -240,16 +240,16 @@ x86pagefault (X86Trapframe *tf)
  *  General Trap Handler
  */
 void 
-trap (X86Trapframe *tf)
+trap (Trapframe *tf)
 {
   int err;
 
-  KDBG ("trap from %d %d(err=0x%x) %p\n", tf->r15, tf->trapno, tf->errcode, tf->rip);
+  // KDBG ("trap from %d %d(err=0x%x) %p\n", tf->r15, tf->trapno, tf->errcode, tf->rip);
   switch (tf->trapno) {
     case E_PF: x86pagefault (tf); break;
     case E_GP: panic ("GP");
     default:
-      int err = handleirq (tf->trapno);
+      err = handleirq (tf->trapno);
       if (err)
         panic ("unknown trap");
       break;

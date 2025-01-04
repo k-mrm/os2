@@ -16,6 +16,12 @@
  */
 static Vas kernvas;
 
+Vas *
+kernelas (void)
+{
+  return &kernvas;
+}
+
 static PTE *
 pagewalk (Vas *vas, ulong va, bool allocpgt)
 {

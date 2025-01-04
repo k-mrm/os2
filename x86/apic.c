@@ -86,7 +86,7 @@ apictimerprobe (Device *device)
   KLOG ("new apictimer!! %d\n", apic->id);
   apic->ops->write (apic, LVT_TIMER, lvt);
   // test
-  apic->ops->write (apic, TM_INIT, lt->freq * 3);
+  apic->ops->write (apic, TM_INIT, lt->freq / 10);    // 100ms
 
   err = newirq (device, 0x40, true, eventtimerirq);
   if (err) {
@@ -215,7 +215,7 @@ apictimerinit (Apic *apic)
   LapicTimer *timer = alloc ();
   if (!timer) {
     KWARN("cannot initialize lapic timer\n");
-    return -1;
+    return;
   }
 
   timer->apic = apic;
