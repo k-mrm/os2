@@ -6,6 +6,7 @@
 #include <list.h>
 #include <device.h>
 #include <x86/arch.h>
+#include <x86/context.h>
 
 typedef struct Proc   Proc;
 typedef struct Cpu    Cpu;
@@ -15,8 +16,7 @@ struct Cpu {
   
   int     cpuid;
   Proc    *currentproc;
-  List    *runqueue;
-  Proc    *kernel;
+  Context context;
 };
 
 Cpu *mycpu (void);

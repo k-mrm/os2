@@ -1,5 +1,6 @@
 // %rdi: Context *prev 
 // %rsi: Context *next
+// %rdx: Proc *pprev
 .text
 .global cswitch
 cswitch: 
@@ -20,7 +21,7 @@ cswitch:
   popq    %rbx
   popq    %rbp
 
-  ret
+  jmp     __cswitch
 
 .global forkret
 forkret:

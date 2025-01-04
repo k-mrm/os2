@@ -1,9 +1,11 @@
 #include <types.h>
 #include <compiler.h>
 #include <panic.h>
+#include <proc.h>
 #include "arch.h"
 #include "mm.h"
 #include "trap.h"
+#include "context.h"
 
 #define KPREFIX   "x86trap:"
 
@@ -254,4 +256,10 @@ trap (Trapframe *tf)
         panic ("unknown trap");
       break;
   }
+}
+
+Proc *
+__cswitch (Context *prev, Context *next, Proc *pprev)
+{
+  return pprev;
 }

@@ -94,32 +94,22 @@ initnewproctf (Proc *p, Trapframe *tf)
 static void
 ready (Proc *p)
 {
+  if (!p)
+    return;
   // Lock rq
   p->state  = READY;
   rqreg (&rq, p);
   // Unlock rq
 }
 
-static Proc *
-newkproc (void)
+// Locked rq
+static void
+running (Proc *p)
 {
-  Proc  *p = zalloc ();
-  void  *sp;
-
   if (!p)
-    return NULL;
-
-  strcpy (p->pname, "kernel");
-  p->parent     = NULL;
-  p->procid     = procid ();
-  p->as         = kernelas ();
-  p->currentcpu = mycpu ();
-
-  return p;
-
-err:
-  free (p);
-  return NULL;
+    return;
+  // assert (rq is locked)
+  p->state = RUNNING;
 }
 
 static Proc *
@@ -167,6 +157,7 @@ err:
 void
 initkernelproc (void)
 {
+  /*
   Cpu   *cpu  = mycpu ();
   Proc  *kp   = newkproc ();
 
@@ -174,6 +165,7 @@ initkernelproc (void)
   cpu->currentproc  = kp;
 
   kp->currentcpu = cpu;
+  */
 }
 
 void
@@ -249,8 +241,6 @@ nextproc (void)
   Proc *p = rqpop (&rq);
   if (!p)
     return kidle;
-
-  rqreg (&rq, p);
   return p;
 }
 
@@ -263,12 +253,25 @@ schedtail (void)
 static void
 contextswitch (Cpu *cpu, Proc *prev, Proc *next)
 {
+  Context *c;
+  Proc    *last;
+
+  ready (prev);
   cpu->currentproc = next;
   next->currentcpu = cpu;
+  running (next);
 
-  KLOG ("cswitch: prev %p -> %p\n", prev, next);
+  KLOG ("cswitch: prev %p(%s) -> %p(%s)\n",
+        prev, prev ? prev->pname : "NULL", next, next->pname);
+  if (UNLIKELY (!prev)) {       // from kernel
+    c = &cpu->context;
+  } else {                      // from process
+    c = &prev->context;
+  }
   // switchas (prev->as, next->as);
-  cswitch (&prev->context, &next->context);
+  last = cswitch (c, &next->context, prev);
+
+  KLOG ("cswitch returned: last:%s c:%s\n", last ? last->pname : "kernel", cpu->currentproc->pname);
 }
 
 void

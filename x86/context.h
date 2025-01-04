@@ -6,6 +6,7 @@
 
 typedef struct KStackFrame  KStackFrame;
 typedef struct Context      Context;
+typedef struct Proc         Proc;
 
 struct KStackFrame {
   u64   r15;
@@ -22,6 +23,6 @@ struct Context {
 };
 
 void forkret (void);
-void cswitch (Context *prev, Context *next);
+Proc *cswitch (Context *prev, Context *next, Proc *pprev);
 
 #endif  // _X86_CONTEXT_H

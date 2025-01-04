@@ -32,7 +32,6 @@ probecpu (Device *dev)
   Cpu   *cpu = (Cpu *)dev->priv;
 
   KLOG ("%s: cpu %d probed!\n", dev->name, cpu->cpuid);
-  cpu->runqueue = newlist ();
 
   if (cpu->cpuid != 0)
     panic ("mp not supported");
@@ -54,7 +53,7 @@ void
 regcpu (int cpuid)
 {
   char  *a    = zalloc ();   // malloc
-  Cpu   *cpu  = alloc ();
+  Cpu   *cpu  = zalloc ();
 
   cpu->cpuid = cpuid;
   sprintf (a, "cpu%d", cpuid);
