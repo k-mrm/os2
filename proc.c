@@ -5,6 +5,7 @@
 #include <kalloc.h>
 #include <string.h>
 #include <proc.h>
+#include <list.h>
 #include <x86/arch.h>
 #include <x86/trap.h>
 
@@ -12,12 +13,54 @@
 
 #include <printk.h>
 
-static Proc *proctable[256];
-static int  np = 0;
-static Proc *initproc;
-static Proc *kidle;
-static Proc *task2;
-static uint procidtable = 0;
+typedef struct RunQueue   RunQueue;
+
+struct RunQueue {
+  // Lock  *lock;
+  List  *queue;
+  int   nqueue;
+};
+
+static Proc     *proctable[256];
+static int      np = 0;
+static Proc     *initproc;
+static Proc     *kidle;
+static uint     procidtable = 0;
+static RunQueue rq;
+
+static void
+rqinit (RunQueue *r)
+{
+  // initlock (r->lock);
+  r->queue  = newlist ();
+  r->nqueue = 0;
+}
+
+// Locked r
+static void
+rqreg (RunQueue *r, Proc *p)
+{
+  if (p->state != READY)
+    return;
+
+  PUSH (r->queue, p);
+  r->nqueue++;
+}
+
+// Locked r
+static Proc *
+rqpop (RunQueue *r)
+{
+  Proc *p;
+
+  if (EMPTY (r->queue))
+    return NULL;
+  p = FIRST (r->queue);
+  listdelete (p);
+  r->nqueue--;
+
+  return p;
+}
 
 static uint
 procid (void)
@@ -46,6 +89,15 @@ initnewproctf (Proc *p, Trapframe *tf)
     tf->ss      = ss;
     tf->rsp     = (u64)tf;
   }
+}
+
+static void
+ready (Proc *p)
+{
+  // Lock rq
+  p->state  = READY;
+  rqreg (&rq, p);
+  // Unlock rq
 }
 
 static Proc *
@@ -105,8 +157,6 @@ newproc (char *name, Proc *parent, bool user, int (*pfunc) (void *arg), void *pa
   ((KStackFrame *)sp)->rip = (u64)forkret;
 
   p->context.rsp  = (u64)sp;
-  p->state        = READY;
-  proctable[np++] = p;
   return p;
   
 err:
@@ -129,7 +179,7 @@ initkernelproc (void)
 void
 initprocess (void)
 {
-  ;
+  rqinit (&rq);
 }
 
 int NORETURN
@@ -141,22 +191,37 @@ idleprocess (void *a)
 }
 
 int NORETURN
-ptask2 (void *a)
+testtask1 (void *a)
 {
   int i = 0;
-  u64 rflags;
-
   for (;;) {
-    asm volatile (
-      "pushfq\n"
-      "pop  %0\n" : "=r" (rflags)
-    );
-    printk ("testtask2 %p %d\n", rflags, i++);
+    printk ("testtask1 %p %d\n", a, i++);
     for (int n = 0; n < 10000000; n++)
       ;
   }
 }
 
+int NORETURN
+testtask2 (void *a)
+{
+  int i = 0;
+  for (;;) {
+    printk ("testtask2 %p %d\n", a, i++);
+    for (int n = 0; n < 10000000; n++)
+      ;
+  }
+}
+
+int NORETURN
+testtask3 (void *a)
+{
+  int i = 0;
+  for (;;) {
+    printk ("testtask3 %p %d\n", a, i++);
+    for (int n = 0; n < 10000000; n++)
+      ;
+  }
+}
 
 int
 spawn (char *pname, Proc *parent, int (*pfunc) (void *arg), void *parg)
@@ -169,27 +234,24 @@ spawn (char *pname, Proc *parent, int (*pfunc) (void *arg), void *parg)
   if (!p)
     return -1;
 
-  if (strcmp (pname, "kidle") == 0)
+  if (strcmp (pname, "kidle") == 0) {
     kidle = p;
-  if (strcmp (pname, "task2") == 0)
-    task2 = p;
+    return 0;
+  }
+
+  ready (p);
   return 0;
 }
 
-int i = 0;
 static Proc *
-nextproc (Cpu *cpu)
+nextproc (void)
 {
-  if (i == 0) {
-    i = 1;
+  Proc *p = rqpop (&rq);
+  if (!p)
     return kidle;
-  } else {
-    i = 0;
-    return task2;
-  }
 
-  if (EMPTY (cpu->runqueue))
-    return kidle;
+  rqreg (&rq, p);
+  return p;
 }
 
 void
@@ -213,7 +275,7 @@ void
 schedule (void)
 {
   Cpu   *cpu    = mycpu ();
-  Proc  *nextp  = nextproc (cpu); 
+  Proc  *nextp  = nextproc (); 
 
   if (!cpu)
     panic ("cpu!?");

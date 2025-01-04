@@ -42,7 +42,7 @@ struct List {
   } while (0)
 
 static inline int
-length (List *head)
+listlength (List *head)
 {
   struct dummy {
     LIST (struct dummy);
@@ -54,7 +54,7 @@ length (List *head)
 }
 
 static inline void
-delete (void *v)
+listdelete (void *v)
 {
   List *lv = (List *)v;
   List *next = lv->next;

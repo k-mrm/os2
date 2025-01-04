@@ -9,7 +9,9 @@
 #include <cpu.h>
 #include <x86/arch.h>
 
-int ptask2 (void *a);
+int testtask1 (void *a);
+int testtask2 (void *a);
+int testtask3 (void *a);
 
 void NORETURN
 kernelmain (void)
@@ -25,7 +27,9 @@ kernelmain (void)
   devprobe ("network");
   initprocess ();
   spawn ("kidle", NULL, idleprocess, NULL);
-  spawn ("task2", NULL, ptask2, NULL);
+  spawn ("task1", NULL, testtask1, NULL);
+  spawn ("task2", NULL, testtask2, NULL);
+  spawn ("task3", NULL, testtask3, NULL);
   apmain ();
 }
 
