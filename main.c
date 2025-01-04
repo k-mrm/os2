@@ -9,6 +9,8 @@
 #include <cpu.h>
 #include <x86/arch.h>
 
+int ptask2 (void *a);
+
 void NORETURN
 kernelmain (void)
 {
@@ -23,6 +25,7 @@ kernelmain (void)
   devprobe ("network");
   initprocess ();
   spawn ("kidle", NULL, idleprocess, NULL);
+  spawn ("task2", NULL, ptask2, NULL);
   apmain ();
 }
 

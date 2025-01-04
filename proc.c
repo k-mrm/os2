@@ -16,6 +16,7 @@ static Proc *proctable[256];
 static int  np = 0;
 static Proc *initproc;
 static Proc *kidle;
+static Proc *task2;
 static uint procidtable = 0;
 
 static uint
@@ -134,6 +135,14 @@ initprocess (void)
 int NORETURN
 idleprocess (void *a)
 {
+  for (;;) {
+    HLT;
+  }
+}
+
+int NORETURN
+ptask2 (void *a)
+{
   int i = 0;
   u64 rflags;
 
@@ -142,11 +151,12 @@ idleprocess (void *a)
       "pushfq\n"
       "pop  %0\n" : "=r" (rflags)
     );
-    printk ("%p %d\n", rflags, i++);
+    printk ("testtask2 %p %d\n", rflags, i++);
     for (int n = 0; n < 10000000; n++)
       ;
   }
 }
+
 
 int
 spawn (char *pname, Proc *parent, int (*pfunc) (void *arg), void *parg)
@@ -161,13 +171,23 @@ spawn (char *pname, Proc *parent, int (*pfunc) (void *arg), void *parg)
 
   if (strcmp (pname, "kidle") == 0)
     kidle = p;
+  if (strcmp (pname, "task2") == 0)
+    task2 = p;
   return 0;
 }
 
+int i = 0;
 static Proc *
 nextproc (Cpu *cpu)
 {
-  return kidle;
+  if (i == 0) {
+    i = 1;
+    return kidle;
+  } else {
+    i = 0;
+    return task2;
+  }
+
   if (EMPTY (cpu->runqueue))
     return kidle;
 }
