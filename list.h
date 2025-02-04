@@ -14,6 +14,9 @@ struct List {
 #define LIST(_ty)     _ty *_prev, *_next
 #define FOREACH(_head, _v)  \
   for (_v = (_head)->next; (List*)(_v) != _head; _v = (_v)->_next)
+#define FOREACH_SAFE(_head, _v, _nv)  \
+  for (_v = (_head)->next; ((List*)(_v) != _head) && ((_nv = (_v)->_next), 1); \
+       _v = _nv)
 #define SAN(_head)  \
   do {  \
     if (!(_head)->prev || !(_head)->next) { \
@@ -61,6 +64,7 @@ listdelete (void *v)
   List *prev = lv->prev;
   next->prev = prev;
   prev->next = next;
+  lv->next = lv->prev = NULL;
 }
 
 static inline void

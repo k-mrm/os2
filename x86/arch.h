@@ -121,6 +121,18 @@ wrmsr64 (u32 reg, u64 val)
   __wrmsr (reg, a, d);
 }
 
+static inline bool
+interruptible (void)
+{
+  u64 rflags;
+  asm volatile (
+      "pushfq\n"
+      "pop  %0\n" : "=r" (rflags)
+      );
+
+  return rflags & EFLAGS_IF;
+}
+
 #define INTR_DISABLE    asm volatile ("cli");
 #define INTR_ENABLE     asm volatile ("sti");
 

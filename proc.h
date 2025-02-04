@@ -23,6 +23,7 @@ enum ProcState {
 struct Proc {
   LIST (Proc);
 
+  // Lock       lock;
   ProcState     state;
   char          pname[32];
 
@@ -34,6 +35,8 @@ struct Proc {
   Context       context;
   void          *kstack;
   void          *ksp;
+
+  int           exitstatus;
 
   bool          user;
   // for kernel process

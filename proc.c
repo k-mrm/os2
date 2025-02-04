@@ -14,6 +14,7 @@
 #include <printk.h>
 
 typedef struct RunQueue   RunQueue;
+typedef struct PFreeList  PFreeList;
 
 struct RunQueue {
   // Lock  *lock;
@@ -21,12 +22,17 @@ struct RunQueue {
   int   nqueue;
 };
 
-static Proc     *proctable[256];
-static int      np = 0;
-static Proc     *initproc;
-static Proc     *kidle;
-static uint     procidtable = 0;
-static RunQueue rq;
+struct PFreeList {
+  // Lock   *lock;
+  List  *freelist;
+};
+
+static Proc       *proctable[256];
+static int        np = 0;
+static Proc       *kidle;
+static uint       procidtable = 0;
+static RunQueue   rq;
+static PFreeList  freelist;
 
 static void
 rqinit (RunQueue *r)
@@ -34,6 +40,12 @@ rqinit (RunQueue *r)
   // initlock (r->lock);
   r->queue  = newlist ();
   r->nqueue = 0;
+}
+
+static void
+freelistinit (PFreeList *f)
+{
+  f->freelist = newlist ();
 }
 
 // Locked r
@@ -92,12 +104,33 @@ initnewproctf (Proc *p, Trapframe *tf)
 }
 
 static void
+fire (Proc *p)
+{
+  List *flist;
+  
+  // acquire
+  flist = freelist.freelist;
+
+  PUSH (flist, p);
+
+  // release
+}
+
+static void
+dead (Proc *p)
+{
+  if (!p)
+    return;
+  p->state = ZOMBIE;
+}
+
+static void
 ready (Proc *p)
 {
   if (!p)
     return;
   // Lock rq
-  p->state  = READY;
+  p->state = READY;
   rqreg (&rq, p);
   // Unlock rq
 }
@@ -110,6 +143,14 @@ running (Proc *p)
     return;
   // assert (rq is locked)
   p->state = RUNNING;
+}
+
+static void
+block (Proc *p)
+{
+  if (!p)
+    return;
+  p->state = BLOCKING;
 }
 
 static Proc *
@@ -129,6 +170,8 @@ newproc (char *name, Proc *parent, bool user, int (*pfunc) (void *arg), void *pa
     p->func = pfunc;
     p->arg  = parg;
   }
+  
+  p->parent = parent;
 
   strcpy (p->pname, name);
 
@@ -154,24 +197,39 @@ err:
   return NULL;
 }
 
+static void
+freeproc (Proc *p)
+{
+  KLOG ("freed %s\n", p->pname);
+  listdelete (p);
+
+  free (p->kstack);
+  memset (p, sizeof *p, 0);
+  free (p);
+}
+
 void
 initkernelproc (void)
 {
-  /*
-  Cpu   *cpu  = mycpu ();
-  Proc  *kp   = newkproc ();
-
-  cpu->kernel       = kp;
-  cpu->currentproc  = kp;
-
-  kp->currentcpu = cpu;
-  */
+  ;
 }
+
+int testtask1 (void *a);
+int testtask2 (void *a);
+int testtask3 (void *a);
+int pfreethread (void *_) NORETURN;
 
 void
 initprocess (void)
 {
   rqinit (&rq);
+  freelistinit (&freelist);
+
+  spawn ("kidle", NULL, idleprocess, NULL);
+  spawn ("task1", NULL, testtask1, NULL);
+  spawn ("task2", NULL, testtask2, NULL);
+  spawn ("task3", NULL, testtask3, NULL);
+  spawn ("procfree", NULL, pfreethread, NULL);
 }
 
 int NORETURN
@@ -190,6 +248,8 @@ testtask1 (void *a)
     printk ("testtask1 %p %d\n", a, i++);
     for (int n = 0; n < 10000000; n++)
       ;
+    if (i == 100)
+      exit (0);
   }
 }
 
@@ -201,6 +261,8 @@ testtask2 (void *a)
     printk ("testtask2 %p %d\n", a, i++);
     for (int n = 0; n < 10000000; n++)
       ;
+    if (i == 30)
+      exit (0);
   }
 }
 
@@ -212,6 +274,26 @@ testtask3 (void *a)
     printk ("testtask3 %p %d\n", a, i++);
     for (int n = 0; n < 10000000; n++)
       ;
+    if (i == 40)
+      exit (0);
+  }
+}
+
+int NORETURN
+pfreethread (void *_)
+{
+  Proc *p, *np;
+
+  for (;;) {
+    // acquire freelist.lock;
+    FOREACH_SAFE (freelist.freelist, p, np) {
+      if (p->state != ZOMBIE)
+        panic ("wtf");
+
+      freeproc (p);
+    }
+    // sleep (myproc, &freelist.lock);
+    // release freelist.lock;
   }
 }
 
@@ -220,8 +302,6 @@ spawn (char *pname, Proc *parent, int (*pfunc) (void *arg), void *parg)
 {
   Proc    *p;
 
-  if (!parent)
-    parent = initproc;
   p = newproc (pname, parent, false, pfunc, parg);
   if (!p)
     return -1;
@@ -235,14 +315,54 @@ spawn (char *pname, Proc *parent, int (*pfunc) (void *arg), void *parg)
   return 0;
 }
 
-static Proc *
-nextproc (void)
+void
+exit (int status)
 {
-  Proc *p = rqpop (&rq);
+  Cpu   *cpu  = mycpu ();
+  Proc  *proc = cpu->currentproc;
+
+  dead (proc);
+
+  proc->exitstatus = status;
+
+  if (proc->parent) {
+    // TODO
+  } else {
+    fire (proc);
+  }
+
+  schedule ();
+  // never return here
+  panic ("dead proc!?");
+}
+
+static Proc *
+nextproc (Proc *prev)
+{
+  Proc *p;
+
+  if (prev && prev->state == RUNNING)
+    ready (prev);
+ 
+  p = rqpop (&rq);
   if (!p)
     return kidle;
   return p;
 }
+
+/*
+void
+sleep (void *chan, Lock *lock)
+{
+  ;
+}
+
+void
+wakeup (void *chan)
+{
+  ;
+}
+*/
 
 void
 schedtail (void)
@@ -250,13 +370,17 @@ schedtail (void)
   return;
 }
 
-static void
-contextswitch (Cpu *cpu, Proc *prev, Proc *next)
+void
+schedule (void)
 {
+  Cpu     *cpu    = mycpu ();
+  Proc    *prev   = cpu->currentproc;
+  Proc    *next   = nextproc (prev); 
   Context *c;
-  Proc    *last;
 
-  ready (prev);
+  if (!next)
+    panic ("next process!?");
+
   cpu->currentproc = next;
   next->currentcpu = cpu;
   running (next);
@@ -269,20 +393,8 @@ contextswitch (Cpu *cpu, Proc *prev, Proc *next)
     c = &prev->context;
   }
   // switchas (prev->as, next->as);
-  last = cswitch (c, &next->context, prev);
+  prev = cswitch (c, &next->context, prev);
 
-  KLOG ("cswitch returned: last:%s c:%s\n", last ? last->pname : "kernel", cpu->currentproc->pname);
-}
-
-void
-schedule (void)
-{
-  Cpu   *cpu    = mycpu ();
-  Proc  *nextp  = nextproc (); 
-
-  if (!cpu)
-    panic ("cpu!?");
-  if (!nextp)
-    panic ("next process!?");
-  contextswitch (cpu, cpu->currentproc, nextp);
+  KLOG ("cswitch returned: last:%s c:%s %d\n",
+        prev ? prev->pname : "kernel", cpu->currentproc->pname, interruptible ());
 }

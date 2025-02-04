@@ -16,10 +16,10 @@ struct KStackFrame {
   u64   rbx;
   u64   rbp;
   u64   rip;
-};
+} PACKED;
 
 struct Context {
-  u64   rsp;
+  u64   rsp;    // must be fast!
 };
 
 void forkret (void);
