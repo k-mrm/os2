@@ -17,6 +17,8 @@ LDFLAGS := -g -nostdlib -nostartfiles -Wl,--build-id=none -static --no-relax
 
 NAME = kernel
 elf = $(NAME).elf
+fakeelf = __$(NAME).elf
+fakeelf2 = __$(NAME)2.elf
 img = $(NAME).img
 iso = $(NAME).iso
 map = $(NAME).map
@@ -38,9 +40,12 @@ objs-x86 += x86/cswitch.o
 objs-1 += printk.o string.o main.o console.o
 objs-1 += hpet.o sysmem.o panic.o
 objs-1 += multiboot.o acpi.o device.o timer.o
-objs-1 += mm.o kalloc.o irq.o proc.o cpu.o
+objs-1 += mm.o kalloc.o irq.o proc.o cpu.o symbol.o
 
 .SUFFIXES : .c .S .o
+
+symbol.inc.h:
+	@touch symbol.inc.h
 
 %.o: %.c
 	@echo CC $@
@@ -50,20 +55,32 @@ objs-1 += mm.o kalloc.o irq.o proc.o cpu.o
 	@echo CC $@
 	@$(CC) $(CFLAGS) -c $< -o $@
 
-$(elf): $(ARCH)/link.ld $(objs-1) $(objs-$(ARCH)) $(CONFIG)
+$(fakeelf): symbol.inc.h $(ARCH)/link.ld $(objs-1) $(objs-$(ARCH)) $(CONFIG)
 	@echo LD $@
 	@$(LD) -n -Map $(map) --no-relax -T $(ARCH)/link.ld -o $@ $(objs-1) $(objs-$(ARCH))
 
+symbol: $(fakeelf)
+	@echo Generate Symbols...
+	@nm -a $(fakeelf) | grep ' T ' | sort | awk '{printf("{0x%s,\"%s\"},\n", $$1, $$3)}' > symbol.inc.h
+
+$(elf): symbol $(ARCH)/link.ld $(objs-1) $(objs-$(ARCH)) $(CONFIG)
+	@echo LD $@
+	@$(LD) -n -Map $(map) --no-relax -T $(ARCH)/link.ld -o $@ $(objs-1) $(objs-$(ARCH))
+
+elf: $(elf)
+	@touch symbol.c
+	@make $(elf)
+
 iso: $(iso)
 
-$(iso): $(elf) grub.cfg
+$(iso): elf grub.cfg
 	@mkdir -p iso/boot/grub
 	@cp grub.cfg iso/boot/grub
 	@cp $(elf) iso/boot/
 	@grub-mkrescue -o $@ iso/
 
 clean:
-	$(RM) $(objs-1) $(objs-$(ARCH)) $(elf) $(iso) $(img) $(map)
+	$(RM) $(objs-1) $(objs-$(ARCH)) $(elf) $(fakeelf) $(iso) $(img) $(map) symbol.inc.h
 	$(RM) -rf iso/
 
 #qemu-img: $(img)
@@ -75,4 +92,4 @@ qemu-iso: $(iso)
 qemu-gdb: $(iso)
 	$(QEMU) -nographic -drive file=$(iso),format=raw -serial mon:stdio -smp $(NCPU) -m $(MEMSZ) -S -gdb tcp::1234
 
-.PHONY: clean iso qemu-iso qemu-gdb
+.PHONY: symbol clean elf iso qemu-iso qemu-gdb

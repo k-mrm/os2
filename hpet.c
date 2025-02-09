@@ -18,12 +18,12 @@
 
 typedef struct Hpet Hpet;
 struct Hpet {
-  void *base;
-  Phys basepa; 
+  void  *base;
+  Phys  basepa; 
 
-  bool cnt64;
-  uint nchannel;
-  uint periodfs;   // 10(^-15) s
+  bool  cnt64;
+  uint  nchannel;
+  uint  periodfs;   // 10(^-15) s
 };
 
 static inline void
@@ -59,16 +59,16 @@ hpetctrl (Hpet *hpet, bool en)
 static void
 hpeton (Device *dev)
 {
-  Timer *tm = (Timer *)dev->priv;
-  Hpet *hpet = tm->priv;
+  Timer *tm   = (Timer *)dev->priv;
+  Hpet  *hpet = tm->priv;
   hpetctrl (hpet, true);
 }
 
 static void
 hpetoff (Device *dev)
 {
-  Timer *tm = (Timer *)dev->priv;
-  Hpet *hpet = tm->priv;
+  Timer *tm   = (Timer *)dev->priv;
+  Hpet  *hpet = tm->priv;
   hpetctrl (hpet, false);
 }
 
@@ -76,8 +76,8 @@ hpetoff (Device *dev)
 static ulong
 hpetusec2period (Timer *tm, uint usec)
 {
-  Hpet *hpet = tm->priv;
-  ulong fsec = (ulong)usec * USEC2FSEC;
+  Hpet  *hpet  = tm->priv;
+  ulong fsec   = (ulong)usec * USEC2FSEC;
   ulong period = fsec / hpet->periodfs;
   return period;
 }
@@ -109,10 +109,10 @@ hpetdead (Hpet *hpet)
 static int INIT
 hpetprobe (Device *dev)
 {
-  Timer *tm = (Timer *)dev->priv;
-  Hpet *hpet = tm->priv;
-  u32 id, clkperiod;
-  void *base;
+  Timer *tm   = (Timer *)dev->priv;
+  Hpet  *hpet = tm->priv;
+  u32   id, clkperiod;
+  void  *base;
 
   base = iomap (hpet->basepa, HPET_MMIO_SIZE);
   if (!base)

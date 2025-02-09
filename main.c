@@ -7,7 +7,10 @@
 #include <device.h>
 #include <proc.h>
 #include <cpu.h>
+#include <pci.h>
+#include <fs.h>
 #include <x86/arch.h>
+#include <symbol.h>
 
 void NORETURN
 kernelmain (void)
@@ -20,7 +23,8 @@ kernelmain (void)
   devprobe ("irqchip");
   devprobe ("timer");
   devprobe ("eventtimer");
-  devprobe ("network");
+  // pciprobe ();
+  // initfs ();
   initprocess ();
   apmain ();
 }
@@ -33,6 +37,10 @@ apmain (void)
   mydevprobe ("timer");
   mydevprobe ("eventtimer");
   initkernelproc ();
+
+  int (*symprintk) (const char *fmt, ...);
+  symprintk = sym2a ("printk");
+  symprintk ("hello from symbol\n");
 
   INTR_ENABLE;
 

@@ -373,9 +373,9 @@ schedtail (void)
 void
 schedule (void)
 {
-  Cpu     *cpu    = mycpu ();
-  Proc    *prev   = cpu->currentproc;
-  Proc    *next   = nextproc (prev); 
+  Cpu     *cpu  = mycpu ();
+  Proc    *prev = cpu->currentproc;
+  Proc    *next = nextproc (prev); 
   Context *c;
 
   if (!next)
@@ -392,6 +392,7 @@ schedule (void)
   } else {                      // from process
     c = &prev->context;
   }
+
   // switchas (prev->as, next->as);
   prev = cswitch (c, &next->context, prev);
 

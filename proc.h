@@ -37,6 +37,7 @@ struct Proc {
   void          *ksp;
 
   int           exitstatus;
+  bool          paniconexit;
 
   bool          user;
   // for kernel process
@@ -51,5 +52,7 @@ int spawn (char *pname, Proc *parent, int (*proc) (void *arg), void *arg);
 int killpid (uint pid);
 int kill (char *pname);
 void schedule (void);
+void exit (int status);
+
 
 #endif  // _PROC_H
