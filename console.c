@@ -7,13 +7,14 @@ Console *console = NULL;
 void
 kernelconsole (Console *cons)
 {
-  int rc = -1;
+        int rc = -1;
 
-  if (cons && cons->init)
-    rc = cons->init (cons);
+        if (cons && cons->init)
+                rc = cons->init (cons);
 
-  if (!rc) {
-    console = cons;
-    printk ("current console: %s\n", console->name);
-  }
+        if (!rc)
+        {
+                console = cons;
+                printk ("current console: %s\n", console->name);
+        }
 }

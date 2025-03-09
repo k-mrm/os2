@@ -14,11 +14,12 @@ typedef struct Vas  Vas;
 /*
  *  Virtual Address Space
  */
-struct Vas {
-  PageTable pgdir;
-  uint      level;
-  uint      lowestlevel;
-  bool      user;
+struct Vas
+{
+        PageTable pgdir;
+        uint      level;
+        uint      lowestlevel;
+        bool      user;
 };
 
 void initkerneladdrspace (Vas *vas);

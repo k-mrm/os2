@@ -10,37 +10,41 @@ typedef struct Device       Device;
 typedef struct Bus          Bus;
 typedef struct DeviceStruct DeviceStruct;
 
-struct Driver {
-  char    *name;
-  char    *description;
+struct Driver
+{
+        char    *name;
+        char    *description;
 
-  int     (*probe) (Device *);
-  void    (*disconnect) (Device *);
-  int     (*reconnect) (Device *);
-  void    (*suspend) (Device *);
-  void    (*resume) (Device *);
+        int     (*probe) (Device *);
+        void    (*disconnect) (Device *);
+        int     (*reconnect) (Device *);
+        void    (*suspend) (Device *);
+        void    (*resume) (Device *);
 
-  char    *param;
+        char    *param;
 };
 
-struct Device {
-  Device    *parent;
-  char      *type;
-  char      *name;
+struct Device
+{
+        Device    *parent;
+        char      *type;
+        char      *name;
 
-  Bus       *bus;
-  Driver    *driver;
-  void      *priv;     // private device information
+        Bus       *bus;
+        Driver    *driver;
+        void      *priv;     // private device information
 };
 
-struct DeviceStruct {
-  Device *device;
+struct DeviceStruct
+{
+        Device *device;
 };
 
-#define DEVICE_STRUCT       DeviceStruct device;
+#define DEVICE_STRUCT       DeviceStruct device
 
-struct Bus {
-  DEVICE_STRUCT;
+struct Bus
+{
+        DEVICE_STRUCT;
 };
 
 void devprobe (char *type);

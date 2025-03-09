@@ -11,51 +11,51 @@ static Cpu *_mycpu;
 Cpu *
 mycpu (void)
 {
-  return _mycpu;
+        return _mycpu;
 }
 
 static void
 resumecpu (Device *dev)
 {
-  return;
+        return;
 }
 
 static void
 suspendcpu (Device *dev)
 {
-  return;
+        return;
 }
 
 static int
 probecpu (Device *dev)
 {
-  Cpu   *cpu = (Cpu *)dev->priv;
+        Cpu *cpu = (Cpu *)dev->priv;
 
-  KLOG ("%s: cpu %d probed!\n", dev->name, cpu->cpuid);
+        log ("%s: cpu %d probed!\n", dev->name, cpu->cpuid);
 
-  if (cpu->cpuid != 0)
-    panic ("mp not supported");
-  _mycpu = cpu;
+        if (cpu->cpuid != 0)
+                panic ("mp not supported");
+        _mycpu = cpu;
 }
 
 static Driver cpudrv = {
-  .name         = "cpu",
-  .description  = "cpu",
-  .probe        = probecpu,
-  .disconnect   = NULL,
-  .reconnect    = NULL,
-  .suspend      = suspendcpu,
-  .resume       = resumecpu,
-  .param        = "disable",
+        .name         = "cpu",
+        .description  = "cpu",
+        .probe        = probecpu,
+        .disconnect   = NULL,
+        .reconnect    = NULL,
+        .suspend      = suspendcpu,
+        .resume       = resumecpu,
+        .param        = "disable",
 };
 
 void
 regcpu (int cpuid)
 {
-  char  *a    = zalloc ();   // malloc
-  Cpu   *cpu  = zalloc ();
+        char *a    = zalloc ();   // malloc
+        Cpu  *cpu  = zalloc ();
 
-  cpu->cpuid = cpuid;
-  sprintf (a, "cpu%d", cpuid);
-  regdevicecpu (cpuid, "cpu", a, NULL, &cpudrv, NULL, (DeviceStruct *)cpu);
+        cpu->cpuid = cpuid;
+        sprintf (a, "cpu%d", cpuid);
+        regdevicecpu (cpuid, "cpu", a, NULL, &cpudrv, NULL, (DeviceStruct *)cpu);
 }

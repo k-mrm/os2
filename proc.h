@@ -12,37 +12,39 @@
 typedef enum ProcState  ProcState;
 typedef struct Proc     Proc;
 
-enum ProcState {
-  NONE,
-  READY,
-  RUNNING,
-  BLOCKING,
-  ZOMBIE,
+enum ProcState
+{
+        NONE,
+        READY,
+        RUNNING,
+        BLOCKING,
+        ZOMBIE,
 };
 
-struct Proc {
-  LIST (Proc);
+struct Proc
+{
+        LIST (Proc);
 
-  // Lock       lock;
-  ProcState     state;
-  char          pname[32];
+        // Lock       lock;
+        ProcState     state;
+        char          pname[32];
 
-  Proc          *parent;
-  Vas           *as;    // address space
-  uint          procid;
-  Cpu           *currentcpu;
-  Trapframe     *tf;
-  Context       context;
-  void          *kstack;
-  void          *ksp;
+        Proc          *parent;
+        Vas           *as;    // address space
+        uint          procid;
+        Cpu           *currentcpu;
+        Trapframe     *tf;
+        Context       context;
+        void          *kstack;
+        void          *ksp;
 
-  int           exitstatus;
-  bool          paniconexit;
+        int           exitstatus;
+        bool          paniconexit;
 
-  bool          user;
-  // for kernel process
-  int           (*func) (void *arg);
-  void          *arg;
+        bool          user;
+        // for kernel process
+        int           (*func) (void *arg);
+        void          *arg;
 };
 
 void initprocess (void);

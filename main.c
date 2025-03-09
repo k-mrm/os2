@@ -15,36 +15,36 @@
 void NORETURN
 kernelmain (void)
 {
-  // Kernel early mapping is 0-1GiB
-  kallocinitearly (0x0, 1 * GiB);
-  kernelmap ();
-  kallocinit ();
-  regcpu (0);     // FIXME
-  devprobe ("irqchip");
-  devprobe ("timer");
-  devprobe ("eventtimer");
-  // pciprobe ();
-  // initfs ();
-  initprocess ();
-  apmain ();
+        // Kernel early mapping is 0-1GiB
+        kallocinitearly (0x0, 1 * GiB);
+        kernelmap ();
+        kallocinit ();
+        regcpu (0);     // FIXME
+        devprobe ("irqchip");
+        devprobe ("timer");
+        devprobe ("eventtimer");
+        // pciprobe ();
+        // initfs ();
+        initprocess ();
+        apmain ();
 }
 
 void NORETURN
 apmain (void)
 {
-  mydevprobe ("cpu");
-  mydevprobe ("irqchip");
-  mydevprobe ("timer");
-  mydevprobe ("eventtimer");
-  initkernelproc ();
+        mydevprobe ("cpu");
+        mydevprobe ("irqchip");
+        mydevprobe ("timer");
+        mydevprobe ("eventtimer");
+        initkernelproc ();
 
-  int (*symprintk) (const char *fmt, ...);
-  symprintk = sym2a ("printk");
-  symprintk ("hello from symbol\n");
+        int (*symprintk) (const char *fmt, ...);
+        symprintk = S ("printk");
+        symprintk ("hello from symbol\n");
 
-  INTR_ENABLE;
+        INTR_ENABLE;
 
-  for (;;)
-    HLT;
-  panic ("kernelmain exits");
+        for (;;)
+                HLT;
+        panic ("kernelmain exits");
 }

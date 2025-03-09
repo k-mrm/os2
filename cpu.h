@@ -11,12 +11,13 @@
 typedef struct Proc   Proc;
 typedef struct Cpu    Cpu;
 
-struct Cpu {
-  DEVICE_STRUCT;
-  
-  int     cpuid;
-  Proc    *currentproc;
-  Context context;
+struct Cpu
+{
+        DEVICE_STRUCT;
+
+        int     cpuid;
+        Proc    *currentproc;
+        Context context;
 };
 
 Cpu *mycpu (void);

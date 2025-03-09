@@ -6,18 +6,24 @@
 
 typedef struct PciDev     PciDev;
 typedef struct PciDriver  PciDriver;
+typedef struct PciConfig  PciConfig;
 
-struct PciConfigSpace {
-
-};
-
-struct PciDriver {
+struct PciConfig
+{
 
 };
 
-struct PciDev {
-  Device      *dev;
-  PciDriver   *driver;
+struct PciDriver
+{
+  char    *name;
+};
+
+struct PciDev
+{
+  DEVICE_STRUCT;
+
+  PciConfig     cfg;
+  PciDriver     *driver;
 };
 
 void pciprobe (void);

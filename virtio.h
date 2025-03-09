@@ -7,19 +7,37 @@
 
 typedef struct VirtioDevice   VirtioDevice;
 typedef struct VirtioDeviceOp VirtioDeviceOp;
+typedef struct VirtioDriver   VirtioDriver;
 
-struct VirtioDeviceOp {
-  void    (*notify) (VirtioDevice *dev, int qsel);
-  void    (*setvq) (VirtioDevice *dev, VirtQ *vq);
+struct VirtioDeviceOp
+{
+        void    (*notify) (VirtioDevice *dev, int qsel);
+        void    (*setvq) (VirtioDevice *dev, VirtQ *vq);
 };
 
-struct VirtioDevice {
-  PciDev    *pci;
-  // mmio?
+struct VirtioDriver
+{
+        char    name[16];
 
-  void      *priv;
+        uint    *features;
+        uint    nfeatures;
 
-  VirtioDeviceOp  *op;
+        int     (*probe) (VirtioDevice *vdev);
+        int     (*disconnect) (VirtioDevice *vdev);
+};
+
+struct VirtioDevice
+{
+        // for pci
+        PciDev          *pci;
+        // for mmio
+        void            *iomem;
+        Phys            iomemphys;
+
+        VirtioDriver    *driver;
+
+        VirtioDeviceOp  *op;
+        void            *priv;
 };
 
 #endif  // _VIRTIO_H

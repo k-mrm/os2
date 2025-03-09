@@ -9,21 +9,25 @@
 typedef struct Timer      Timer;
 typedef struct EventTimer EventTimer;
 
-struct Timer {
-  DEVICE_STRUCT;
-  void    *priv;
-  bool    global;
-  ulong   (*usec2period) (Timer *tm, uint usec);
-  ulong   (*read) (Timer *tm);
+struct Timer
+{
+        DEVICE_STRUCT;
+
+        void    *priv;
+        bool    global;
+        ulong   (*usec2period) (Timer *tm, uint usec);
+        ulong   (*read) (Timer *tm);
 };
 
-struct EventTimer {
-  DEVICE_STRUCT;
-  void  *priv;
-  bool  global;
-  uint  (*getperiod) (EventTimer *et);
-  void  (*setperiod) (EventTimer *et, uint ms);
-  int   (*irqhandler) (EventTimer *et, Irq *irq);
+struct EventTimer
+{
+        DEVICE_STRUCT;
+
+        void  *priv;
+        bool  global;
+        uint  (*getperiod) (EventTimer *et);
+        void  (*setperiod) (EventTimer *et, uint ms);
+        int   (*irqhandler) (EventTimer *et, Irq *irq);
 };
 
 int eventtimerirq (Irq *irq);

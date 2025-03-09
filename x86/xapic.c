@@ -21,90 +21,91 @@
 static inline u32
 xapicread32 (void *base, u32 off)
 {
-  return *(volatile u32 *)(base + off);
+        return *(volatile u32 *)(base + off);
 }
 
 static inline void
 xapicwrite32 (void *base, u32 off, u32 val)
 {
-  *(volatile u32 *)(base + off) = val;
+        *(volatile u32 *)(base + off) = val;
 }
 
 static u32
 xapicrd (Apic *apic, u32 reg)
 {
-  u32 offset = reg;
-  return xapicread32 (apic->base, offset);
+        u32 offset = reg;
+        return xapicread32 (apic->base, offset);
 }
 
 static void
 xapicwr (Apic *apic, u32 reg, u32 val)
 {
-  u32 offset = reg;
-  xapicwrite32 (apic->base, offset, val);
-  // wait for completion
-  xapicread32 (apic->base, XAPIC_ID);
+        u32 offset = reg;
+        xapicwrite32 (apic->base, offset, val);
+        // wait for completion
+        xapicread32 (apic->base, XAPIC_ID);
 }
 
 static void
 enxapic (void)
 {
-  ulong apicbase = rdmsr64 (IA32_APIC_BASE);
-  if (apicbase & IA32_APIC_BASE_APIC_GLOBAL_ENABLE)
-    return;
+        ulong apicbase = rdmsr64 (IA32_APIC_BASE);
 
-  apicbase |= IA32_APIC_BASE_APIC_GLOBAL_ENABLE;
-  wrmsr64 (IA32_APIC_BASE, apicbase);
+        if (apicbase & IA32_APIC_BASE_APIC_GLOBAL_ENABLE)
+                return;
+
+        apicbase |= IA32_APIC_BASE_APIC_GLOBAL_ENABLE;
+        wrmsr64 (IA32_APIC_BASE, apicbase);
 }
 
 static void
 xapicsendipi (Apic *apic, int id)
 {
-  ;
+        ;
 }
 
 static u32
 apicbaseaddr (void)
 {
-  ulong apicbase = rdmsr64 (IA32_APIC_BASE);
-  return (apicbase & IA32_APIC_BASE_APIC_BASE_MASK);
+        ulong apicbase = rdmsr64 (IA32_APIC_BASE);
+        return (apicbase & IA32_APIC_BASE_APIC_BASE_MASK);
 }
 
 static int
 xapicprobe (Apic *apic)
 {
-  void *xapic;
+        void *xapic;
 
-  enxapic ();
-  xapic = iomap (apicbaseaddr (), PAGESIZE);
-  if (!xapic)
-    return -1;
+        enxapic ();
+        xapic = iomap (apicbaseaddr (), PAGESIZE);
+        if (!xapic)
+                return -1;
 
-  apic->basepa  = apicbaseaddr ();
-  apic->base    = xapic;
-  return 0;
+        apic->basepa  = apicbaseaddr ();
+        apic->base    = xapic;
+        return 0;
 }
 
 static ApicOps xapicops = {
-  .probe    = xapicprobe,
-  .read     = xapicrd,
-  .write    = xapicwr,
-  .sendipi  = xapicsendipi,
+        .probe    = xapicprobe,
+        .read     = xapicrd,
+        .write    = xapicwr,
+        .sendipi  = xapicsendipi,
 };
 
 static bool
 xapicsupported (void)
 {
-  u32 a, b, c, d;
-  cpuid (CPUID_1, &a, &b, &c, &d);
-  return !!(d & CPUID_1_EDX_APIC);
+        u32 a, b, c, d;
+        cpuid (CPUID_1, &a, &b, &c, &d);
+        return !!(d & CPUID_1_EDX_APIC);
 }
 
 void INIT
 xapicinit (uint id)
 {
-  if (!xapicsupported ())
-    return;
-  KLOG ("Kernel use xapic\n");
-  apicinit (id, &xapicops);
+        if (!xapicsupported ())
+                return;
+        log ("Kernel use xapic\n");
+        apicinit (id, &xapicops);
 }

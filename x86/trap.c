@@ -17,24 +17,24 @@ extern ulong allvectors[];
 
 // __vector0xnn_()
 #define VECTOR(_n)  \
-  void __vector ## _n ## _(void); \
-  asm (             \
-    ".align 4 \n"   \
-    "__vector" #_n "_: \n"  \
-    " pushq $0 \n"          \
-    " pushq $" #_n "\n"     \
-    " jmp   traphandler \n" \
-    )
+        void __vector ## _n ## _(void); \
+        asm volatile (                  \
+                ".align 4 \n"           \
+                "__vector" #_n "_: \n"  \
+                " pushq $0 \n"          \
+                " pushq $" #_n "\n"     \
+                " jmp   traphandler \n" \
+        )
 
 // vector with error code
 #define VECTORERR(_n)             \
-  void __vector ## _n ## _(void); \
-  asm (                           \
-    ".align 4 \n"                 \
-    "__vector" #_n "_: \n"        \
-    " pushq $" #_n "\n"           \
-    " jmp   traphandler \n"       \
-    )
+        void __vector ## _n ## _(void); \
+        asm volatile (                  \
+                ".align 4 \n"           \
+                "__vector" #_n "_: \n"  \
+                " pushq $" #_n "\n"     \
+                " jmp   traphandler \n" \
+        )
 
 VECTOR(0x00); VECTOR(0x01); VECTOR(0x02); VECTOR(0x03);
 VECTOR(0x04); VECTOR(0x05); VECTOR(0x06); VECTOR(0x07);
@@ -106,13 +106,13 @@ VECTOR(0xfc); VECTOR(0xfd); VECTOR(0xfe); VECTOR(0xff);
 
 // make vector table
 
-asm (
-  ".data \n"
-  "allvectors: \n"
+asm volatile (
+        ".data \n"
+        "allvectors: \n"
 );
 
 #define VENTRY(_n)  \
-  asm (".quad __vector" #_n "_ \n")
+  asm volatile (".quad __vector" #_n "_ \n")
 
 VENTRY(0x00); VENTRY(0x01); VENTRY(0x02); VENTRY(0x03);
 VENTRY(0x04); VENTRY(0x05); VENTRY(0x06); VENTRY(0x07);
@@ -181,61 +181,61 @@ VENTRY(0xfc); VENTRY(0xfd); VENTRY(0xfe); VENTRY(0xff);
 
 #undef VENTRY
 
-asm (".text \n");
+asm volatile (".text \n");
 
 static inline void
 loadidt (Gatedesc *idt, ulong idtsize)
 {
-  volatile u16 t[5];
+        volatile u16 t[5];
 
-  t[0] = (u16)idtsize - 1;
-  t[1] = (u16)(ulong)idt;
-  t[2] = (u16)((ulong)idt >> 16);
-  t[3] = (u16)((ulong)idt >> 32);
-  t[4] = (u16)((ulong)idt >> 48);
+        t[0] = (u16)idtsize - 1;
+        t[1] = (u16)(ulong)idt;
+        t[2] = (u16)((ulong)idt >> 16);
+        t[3] = (u16)((ulong)idt >> 32);
+        t[4] = (u16)((ulong)idt >> 48);
 
-  asm volatile ("lidt (%0)" :: "r"(t));
+        asm volatile ("lidt (%0)" :: "r"(t));
 }
 
 static inline void
 setgate (Gatedesc *desc, ulong offset, u16 sel, Gatetype type, u8 dpl)
 {
-  desc->offset_0_15   = (u16)offset;
-  desc->sel           = sel;
-  desc->ist           = 0;
-  desc->_rsrv0        = 0;
-  desc->gatetype      = type;
-  desc->_zero         = 0;
-  desc->dpl           = dpl;
-  desc->p             = 1;
-  desc->offset_16_31  = (u16)(offset >> 16);
-  desc->offset_32_63  = (u32)(offset >> 32);
-  desc->_rsrv1        = 0;
+        desc->offset_0_15   = (u16)offset;
+        desc->sel           = sel;
+        desc->ist           = 0;
+        desc->_rsrv0        = 0;
+        desc->gatetype      = type;
+        desc->_zero         = 0;
+        desc->dpl           = dpl;
+        desc->p             = 1;
+        desc->offset_16_31  = (u16)(offset >> 16);
+        desc->offset_32_63  = (u32)(offset >> 32);
+        desc->_rsrv1        = 0;
 }
 
 void INIT
 x86trapinit (void)
 {
-  for (uint i = 0; i < NR_INTERRUPT; i++)
-    setgate (idt + i, allvectors[i], SEG_KCODE64, GATEDESC_64_INTR, DPL_KERNEL);
-  loadidt (idt, sizeof idt);
+        for (uint i = 0; i < NR_INTERRUPT; i++)
+                setgate (idt + i, allvectors[i], SEG_KCODE64, GATEDESC_64_INTR, DPL_KERNEL);
+        loadidt (idt, sizeof idt);
 }
 
 static void
 x86pagefault (Trapframe *tf)
 {
   // PAGEFAULT pf;
-  ulong faultaddr = cr2 ();
+        ulong faultaddr = cr2 ();
 
-  KDBG ("page fault @%p (%p)\n", tf->rip, faultaddr);
-  panic ("gg");
-  /*
-  pf.FaultAddr = faultaddr;
-  pf.Wr = !!(tf->Errcode & (1 << 1));
-  pf.User = false;
+        warn ("page fault @%p (%p)\n", tf->rip, faultaddr);
+        panic ("gg");
+        /*
+           pf.FaultAddr = faultaddr;
+           pf.Wr = !!(tf->Errcode & (1 << 1));
+           pf.User = false;
 
-  PageFault(&pf);
-  */
+           PageFault (&pf);
+           */
 }
 
 /*
@@ -244,22 +244,23 @@ x86pagefault (Trapframe *tf)
 void 
 trap (Trapframe *tf)
 {
-  int err;
+        int err;
 
-  // KDBG ("trap from %d %d(err=0x%x) %p\n", tf->r15, tf->trapno, tf->errcode, tf->rip);
-  switch (tf->trapno) {
-    case E_PF: x86pagefault (tf); break;
-    case E_GP: panic ("GP");
-    default:
-      err = handleirq (tf->trapno);
-      if (err)
-        panic ("unknown trap");
-      break;
-  }
+        // trace ("trap from %d %d(err=0x%x) %p\n", tf->r15, tf->trapno, tf->errcode, tf->rip);
+        switch (tf->trapno)
+        {
+        case E_PF: x86pagefault (tf); break;
+        case E_GP: panic ("GP");
+        default:
+                   err = handleirq (tf->trapno);
+                   if (err)
+                           panic ("unknown trap");
+                   break;
+        }
 }
 
 Proc *
 __cswitch (Context *prev, Context *next, Proc *pprev)
 {
-  return pprev;
+        return pprev;
 }

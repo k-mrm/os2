@@ -11,8 +11,8 @@ int vsprintf (char *buf, const char *fmt, va_list ap);
 #define KPREFIX
 #endif  // KPREFIX
 
-#define KDBG(fmt, ...)  printk (KPREFIX " [debug] " fmt, ##__VA_ARGS__)
-#define KWARN(fmt, ...) printk (KPREFIX " [warning] " fmt, ##__VA_ARGS__)
-#define KLOG(fmt, ...)  printk (KPREFIX " " fmt, ##__VA_ARGS__)
+#define trace(fmt, ...) printk (KPREFIX " [trace] " fmt, ##__VA_ARGS__)
+#define warn(fmt, ...)  printk (KPREFIX " [warning] " fmt, ##__VA_ARGS__)
+#define log(fmt, ...)   printk (KPREFIX " " fmt, ##__VA_ARGS__)
 
 #endif  // _PRINTK_H

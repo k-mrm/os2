@@ -13,29 +13,29 @@
 static void
 x2apicsendipi (Apic *apic, int id)
 {
-  ;
+        ;
 }
 
 static ApicOps x2apicops = {
-  .probe    = NULL,
-  .read     = NULL,
-  .write    = NULL,
-  .sendipi  = x2apicsendipi,
+        .probe    = NULL,
+        .read     = NULL,
+        .write    = NULL,
+        .sendipi  = x2apicsendipi,
 };
 
 static bool
 x2apicsupported (void)
 {
-  u32 a, b, c, d;
-  cpuid (CPUID_1, &a, &b, &c, &d);
-  return !!(c & CPUID_1_ECX_X2APIC);
+        u32 a, b, c, d;
+        cpuid (CPUID_1, &a, &b, &c, &d);
+        return !!(c & CPUID_1_ECX_X2APIC);
 }
 
 void INIT
 x2apicinit (uint id)
 {
-  if (!x2apicsupported ())
-    return;
-  KLOG ("Kernel use x2apic\n");
-  apicinit (id, &x2apicops);
+        if (!x2apicsupported ())
+                return;
+        log ("Kernel use x2apic\n");
+        apicinit (id, &x2apicops);
 }
