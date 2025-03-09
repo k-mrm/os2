@@ -18,7 +18,7 @@ extern ulong allvectors[];
 // __vector0xnn_()
 #define VECTOR(_n)  \
         void __vector ## _n ## _(void); \
-        asm volatile (                  \
+        asm (                           \
                 ".align 4 \n"           \
                 "__vector" #_n "_: \n"  \
                 " pushq $0 \n"          \
@@ -29,7 +29,7 @@ extern ulong allvectors[];
 // vector with error code
 #define VECTORERR(_n)             \
         void __vector ## _n ## _(void); \
-        asm volatile (                  \
+        asm (                           \
                 ".align 4 \n"           \
                 "__vector" #_n "_: \n"  \
                 " pushq $" #_n "\n"     \
@@ -106,13 +106,13 @@ VECTOR(0xfc); VECTOR(0xfd); VECTOR(0xfe); VECTOR(0xff);
 
 // make vector table
 
-asm volatile (
+asm (
         ".data \n"
         "allvectors: \n"
 );
 
 #define VENTRY(_n)  \
-  asm volatile (".quad __vector" #_n "_ \n")
+  asm (".quad __vector" #_n "_ \n")
 
 VENTRY(0x00); VENTRY(0x01); VENTRY(0x02); VENTRY(0x03);
 VENTRY(0x04); VENTRY(0x05); VENTRY(0x06); VENTRY(0x07);
@@ -181,7 +181,7 @@ VENTRY(0xfc); VENTRY(0xfd); VENTRY(0xfe); VENTRY(0xff);
 
 #undef VENTRY
 
-asm volatile (".text \n");
+asm (".text \n");
 
 static inline void
 loadidt (Gatedesc *idt, ulong idtsize)

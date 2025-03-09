@@ -34,13 +34,18 @@ objs-x86 += x86/com.o x86/main.o x86/seg.o
 objs-x86 += x86/cpu.o x86/pic-8259a.o x86/mm.o
 objs-x86 += x86/trap-handler.o x86/trap.o
 objs-x86 += x86/apic.o x86/xapic.o x86/x2apic.o
-objs-x86 += x86/cswitch.o
+objs-x86 += x86/cswitch.o x86/pci.o
 
 # Kernel objects
 objs-1 += printk.o string.o main.o console.o
 objs-1 += hpet.o sysmem.o panic.o
 objs-1 += multiboot.o acpi.o device.o timer.o
 objs-1 += mm.o kalloc.o irq.o proc.o cpu.o symbol.o
+objs-1 += pci.o
+
+QEMUOPTS = -smp $(NCPU) -m $(MEMSZ)
+QEMUOPTS += -device virtio-net-pci,bus=pci.0,disable-legacy=on,disable-modern=off
+QEMUOPTS += -device virtio-rng-pci,bus=pci.0,disable-legacy=on,disable-modern=off
 
 .SUFFIXES : .c .S .o
 
@@ -87,9 +92,9 @@ clean:
 #	$(QEMU) -nographic -drive file=$(img),index=0,media=disk,format=raw -smp $(NCPU) -m $(MEMSZ)
 
 qemu-iso: $(iso)
-	$(QEMU) -nographic -drive file=$(iso),format=raw -serial mon:stdio -smp $(NCPU) -m $(MEMSZ)
+	$(QEMU) $(QEMUOPTS) -nographic -drive file=$(iso),format=raw -serial mon:stdio
 
 qemu-gdb: $(iso)
-	$(QEMU) -nographic -drive file=$(iso),format=raw -serial mon:stdio -smp $(NCPU) -m $(MEMSZ) -S -gdb tcp::1234
+	$(QEMU) $(QEMUOPTS) -nographic -drive file=$(iso),format=raw -serial mon:stdio -S -gdb tcp::1234
 
 .PHONY: symbol clean elf iso qemu-iso qemu-gdb

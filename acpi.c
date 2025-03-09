@@ -11,8 +11,8 @@
 
 #include <printk.h>
 
-static void *rsdp;
-static void *xsdp;
+static Rsdp *rsdp;
+static Xsdp *xsdp;
 
 static int  rsdpver;
 static Rsdt *rsdt;
@@ -233,7 +233,7 @@ regxsdp (void *x)
 {
         if (!x)
                 warn ("null xsdp");
-        xsdp = x;
+        xsdp = (Xsdp *)x;
 }
 
 void
@@ -241,7 +241,7 @@ regrsdp (void *r)
 {
         if (!r)
                 warn ("null rsdp");
-        rsdp = r;
+        rsdp = (Rsdp *)r;
 }
 
 void INIT

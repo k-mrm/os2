@@ -1,56 +1,71 @@
 #include <compiler.h>
 #include <types.h>
+#include <pci.h>
+#include <printk.h>
 #include "arch.h"
-#include "pci.h"
 
-#define PCI_CONFIG_ADDR_PORT  0x0CF8
-#define PCI_CONFIG_DATA_PORT	0x0CFC
+#define PCI_CONFIG_ADDR_PORT    0x0cf8
+#define PCI_CONFIG_DATA_PORT    0x0cfc
 
 // static Lock   lock;
 
 #define CONF(_bus, _devfn, _reg) \
-  ((1ul << 31) | (((_reg) & 0xf00) << 16) | ((_bus) << 16) | ((_devfn) << 8 | ((_reg) & 0xfc)))
+        ((1ul << 31) | (((_reg) & 0xf00) << 16) | ((_bus) << 16) | ((_devfn) << 8 | ((_reg) & 0xfc)))
 
 int
 pcicfgread (int bus, int devfn, int reg, int size, u32 *v)
 {
-  u32 val;
+        int ret = 0;
+        u16 dport = PCI_CONFIG_DATA_PORT + (reg & 3);
 
-  // acquire lock;
-  outl (PCI_CONFIG_ADDR_PORT, CONF (bus, devfn, reg));
-  val = inl (PCI_CONFIG_DATA_PORT);
-  // release lock;
+        // acquire lock;
+        outl (PCI_CONFIG_ADDR_PORT, CONF (bus, devfn, reg));
 
-  switch (size) {
-    case 1:   *v = (u8)val;
-    case 2:   *v = (u16)val;
-    case 4:   *v = val;
-    default:  return -1;
-  }
-  return 0;
+        switch (size) {
+        case 1:
+                *(u8 *)v = inb (dport);
+                break;
+        case 2:
+                *(u16 *)v = inw (dport);
+                break;
+        case 4:
+                *v = inl (dport);
+                break;
+        default:
+                ret = -1;
+                break;
+        }
+
+        // release lock;
+
+        return ret;
 }
 
 int
 pcicfgwrite (int bus, int devfn, int reg, int size, u32 v)
 {
-  u32 val;
+        int ret = 0;
+        u16 dport = PCI_CONFIG_DATA_PORT + (reg & 3);
 
-  switch (size) {
-    case 1:   val = (u8)v;
-    case 2:   val = (u16)v;
-    case 4:   val = v;
-    default:  return -1;
-  }
+        // acquire lock;
+        outl (PCI_CONFIG_ADDR_PORT, CONF (bus, devfn, reg));
 
-  // acquire lock;
-  outl (PCI_CONFIG_ADDR_PORT, CONF (bus, devfn, reg));
-  outl (PCI_CONFIG_DATA_PORT, val);
-  // release lock;
-  return 0;
-}
+        switch (size) {
+        case 1:
+                outb (dport, (u8)v);
+                break;
+        case 2:
+                outw (dport, (u16)v);
+                break;
+        case 4:
+                outl (dport, v);
+                break;
+        default:
+                ret = -1;
+                break;
+        }
 
-void
-x86pciinit ()
-{
-  ;
+        // release lock;
+
+        return ret;
 }

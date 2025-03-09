@@ -6,6 +6,7 @@
 #include "arch.h"
 #include "com.h"
 #include "mm.h"
+#include "pci.h"
 
 void NORETURN INIT
 x86main (MultiBootInfo *mb)
