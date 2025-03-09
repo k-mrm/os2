@@ -3,6 +3,7 @@
 #include <pci.h>
 #include <device.h>
 #include <printk.h>
+#include <kalloc.h>
 #include <x86/pci.h>
 
 static int
@@ -36,10 +37,36 @@ static Driver pcidriver = {
         .param        = "disable",
 };
 
-static int
-regpci ()
+static PciDev *
+pcifind (u16 vendor, u16 device)
 {
         ;
+}
+
+static char *
+pciname (PciDev *pci, char *name)
+{
+        sprintf (name, "%x:%x.%x", pci->bus, DEVNO (pci->devfn), FUNCNO (pci->devfn));
+        return name;
+}
+
+static int
+newpci (int bus, int devfn)
+{
+        PciDev *pci;
+        char name[40] = {0};
+        
+        pci = alloc ();
+        if (!pci)
+                return -1;
+
+        pci->bus        = bus;
+        pci->devfn      = devfn;
+        pci->vendorid   = pciread (pci, PCI_CONFIG_VENDOR_ID, 2);
+        pci->deviceid   = pciread (pci, PCI_CONFIG_DEVICE_ID, 2);
+        pci->hdrtype    = pciread (pci, PCI_CONFIG_HEADER_TYPE, 1);
+
+        return regdevice ("PCI", pciname (pci, name), NULL, &pcidriver, NULL, (DeviceStruct*)pci);
 }
 
 void INIT
@@ -58,6 +85,8 @@ initpci (void)
                 {
                         continue;
                 }
+
+                newpci (bn, DEVFN (dn, fn));
 
                 pcicfgread (bn, DEVFN (dn, fn), PCI_CONFIG_DEVICE_ID, sizeof d, &d);
                 trace ("PCI Device: %x.%x:%x %x:%x\n", bn, dn, fn, v, d);

@@ -15,6 +15,7 @@ struct Timer
 
         void    *priv;
         bool    global;
+
         ulong   (*usec2period) (Timer *tm, uint usec);
         ulong   (*read) (Timer *tm);
 };
@@ -25,6 +26,7 @@ struct EventTimer
 
         void  *priv;
         bool  global;
+
         uint  (*getperiod) (EventTimer *et);
         void  (*setperiod) (EventTimer *et, uint ms);
         int   (*irqhandler) (EventTimer *et, Irq *irq);

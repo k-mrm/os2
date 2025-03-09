@@ -2,6 +2,7 @@
 #include <compiler.h>
 #include <device.h>
 #include <timer.h>
+#include <printk.h>
 #include <string.h>
 
 #define FOREACH_DEVICE(_dev)  \
@@ -47,8 +48,7 @@ regdevicecpu (int cpu, char *ty, char *name, Bus *bus, Driver *drv, Device *pare
 
         dev->type     = ty;
         dev->parent   = parent;
-        dev->name     = name;
-        dev->bus      = bus;
+        strcpy (dev->name, name);
         dev->driver   = drv;
         dev->priv     = priv;
         priv->device  = dev;
@@ -68,8 +68,7 @@ regdevice (char *ty, char *name, Bus *bus, Driver *drv, Device *parent,
 
         dev->type     = ty;
         dev->parent   = parent;
-        dev->name     = name;
-        dev->bus      = bus;
+        strcpy (dev->name, name);
         dev->driver   = drv;
         dev->priv     = priv;
         priv->device  = dev;
@@ -102,6 +101,34 @@ mydevprobe (char *type)
                 {
                         if (dev->driver->probe)
                                 dev->driver->probe (dev);
+                }
+        }
+}
+
+void
+lsdev (void)
+{
+        Device *dev;
+
+        FOREACH_DEVICE (dev)
+        {
+                printk ("%s device: %s\n", dev->type, dev->name);
+
+                if (dev->driver)
+                {
+                        printk ("  driver: %s\n", dev->driver->name);
+                        printk ("    %s\n", dev->driver->description);
+                }
+        }
+
+        FOREACH_MY_DEVICE (dev)
+        {
+                printk ("%s device: %s\n", dev->type, dev->name);
+
+                if (dev->driver)
+                {
+                        printk ("  driver: %s\n", dev->driver->name);
+                        printk ("    %s\n", dev->driver->description);
                 }
         }
 }

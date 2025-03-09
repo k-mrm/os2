@@ -38,6 +38,8 @@ apmain (void)
         mydevprobe ("eventtimer");
         initkernelproc ();
 
+        lsdev ();
+
         int (*symprintk) (const char *fmt, ...);
         symprintk = S ("printk");
         symprintk ("hello from symbol\n");

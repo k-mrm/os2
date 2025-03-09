@@ -28,9 +28,8 @@ struct Device
 {
         Device    *parent;
         char      *type;
-        char      *name;
+        char      name[40];
 
-        Bus       *bus;
         Driver    *driver;
         void      *priv;     // private device information
 };

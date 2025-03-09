@@ -40,22 +40,40 @@ typedef struct PciConfig  PciConfig;
 
 struct PciDriver
 {
-  char    *name;
+        char    *name;
 };
 
 struct PciDev
 {
-  DEVICE_STRUCT;
+        DEVICE_STRUCT;
 
-  PciDriver *driver;
-  u8        bus;
-  u8        devfn;
+        PciDriver     *driver;
+        u8            bus;
+        u8            devfn;
+        u16           vendorid;
+        u16           deviceid;
+        u8            hdrtype;
+
+        void          *priv;
 };
 
 void initpci (void) INIT;
 
-u32 pciread (PciDev *pci, int reg, int size);
-u32 pciwrite (PciDev *pci, int reg, int size, u32 v);
+static inline u32
+pciread (PciDev *dev, int reg, int size)
+{
+        u32 v = 0;
+        
+        pcicfgread (dev->bus, dev->devfn, reg, size, &v);
+
+        return v;
+}
+
+static inline void
+pciwrite (PciDev *dev, int reg, int size, u32 v)
+{
+        pcicfgwrite (dev->bus, dev->devfn, reg, size, v);
+}
 
 int pcicfgread (int bus, int devfn, int reg, int size, u32 *v);
 int pcicfgwrite (int bus, int devfn, int reg, int size, u32 v);
