@@ -2,22 +2,23 @@
 #define _X86_APIC_H
 
 #include <types.h>
+#include <device.h>
 
 typedef struct Apic       Apic;
 typedef struct ApicOps    ApicOps;
 
 struct ApicOps {
-  int   (*probe) (Apic *apic);
+  int   (*probe) (Device *dev, Apic *apic);
   u32   (*read) (Apic *apic, u32 reg);
   void  (*write) (Apic *apic, u32 reg, u32 val);
   void  (*sendipi) (Apic *apic, int id);
 };
 
 struct Apic {
-  ApicOps   *ops;
-  void      *base;
-  Phys      basepa;
-  int       id;
+  ApicOps       *ops;
+  volatile void *base;
+  Phys          basepa;
+  int           id;
 };
 
 void xapicinit (uint id);

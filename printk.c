@@ -3,8 +3,15 @@
 #include <console.h>
 #include "string.h"
 
+typedef struct OPTION
+{
+        int     n;
+        bool    zero;
+        bool    pr0x;
+} OPTION;
+
 static uint
-sprintiu32 (char *p, i32 num, int base, bool sign)
+sprintiu32 (char *p, i32 num, int base, bool sign, OPTION opt)
 {
         char buf[sizeof (num) * 8 + 1] = {0};
         char *end = buf + sizeof (buf);
@@ -12,6 +19,7 @@ sprintiu32 (char *p, i32 num, int base, bool sign)
         bool neg = false;
         u32 unum;
         uint n = 0;
+        uint ndigit = opt.n;
 
         if (sign && num < 0)
         {
@@ -35,12 +43,18 @@ sprintiu32 (char *p, i32 num, int base, bool sign)
                 n++;
         }
 
+        while (ndigit > n)
+        {
+                *--cur = opt.zero ? '0' : ' ';
+                n++;
+        }
+
         memcpy (p, cur, n);
         return n;
 }
 
 static uint
-sprintiu64 (char *p, i64 num, int base, bool sign)
+sprintiu64 (char *p, i64 num, int base, bool sign, OPTION opt)
 {
         char buf[sizeof (num) * 8 + 1] = {0};
         char *end = buf + sizeof (buf);
@@ -48,6 +62,7 @@ sprintiu64 (char *p, i64 num, int base, bool sign)
         bool neg = false;
         u64 unum;
         uint n = 0;
+        uint ndigit = opt.n;
 
         if (sign && num < 0)
         {
@@ -71,42 +86,88 @@ sprintiu64 (char *p, i64 num, int base, bool sign)
                 n++;
         }
 
+        while (ndigit > n)
+        {
+                *--cur = opt.zero ? '0' : ' ';
+                n++;
+        }
+
         memcpy (p, cur, n);
         return n;
+}
+
+static inline bool
+isdigit (char c)
+{
+        return '0' <= c && c <= '9';
+}
+
+// %#x, %02x, %3d, etc...
+static const char *
+parseopt (const char *str, OPTION *opt)
+{
+        int n = 0;
+
+        memset (opt, 0, sizeof *opt);
+
+        if (*str == '#')
+        {
+                str++;
+                opt->pr0x = true;
+        }
+        if (*str == '0')
+        {
+                str++;
+                opt->zero = true;
+        }
+
+        while (isdigit (*str))
+        {
+                n = n * 10 + *str++ - '0';
+        }
+
+        opt->n = n;
+        return str;
 }
 
 int
 vsprintf (char *buf, const char *fmt, va_list ap)
 {
-        uint n = 0;
-        uint len;
-        char c;
+        char    c;
+        uint    n = 0;
+        uint    len;
+        OPTION  opt;
 
-        for (int i = 0; fmt[i]; i++)
+        for (; *fmt; fmt++)
         {
-                c = fmt[i];
+                c = *fmt;
                 if (c == '%')
                 {
-                        c = fmt[++i];
+                        fmt = parseopt (++fmt, &opt);
 
-                        switch (c)
+                        switch (*fmt)
                         {
                         case 'd':
-                                len = sprintiu32 (buf + n, va_arg (ap, i32), 10, true);
+                                len = sprintiu32 (buf + n, va_arg (ap, i32), 10, true, opt);
                                 n += len;
                                 break;
                         case 'u':
-                                len = sprintiu32 (buf + n, va_arg (ap, u32), 10, false);
+                                len = sprintiu32 (buf + n, va_arg (ap, u32), 10, false, opt);
                                 n += len;
                                 break;
                         case 'x':
-                                len = sprintiu64 (buf + n, va_arg (ap, u64), 16, false);
+                                if (opt.pr0x)
+                                {
+                                        buf[n++] = '0';
+                                        buf[n++] = 'x';
+                                }
+                                len = sprintiu64 (buf + n, va_arg (ap, u64), 16, false, opt);
                                 n += len;
                                 break;
                         case 'p':
                                 buf[n++] = '0';
                                 buf[n++] = 'x';
-                                len = sprintiu64 (buf + n, va_arg (ap, u64), 16, false);
+                                len = sprintiu64 (buf + n, va_arg (ap, u64), 16, false, opt);
                                 n += len;
                                 break;
                         case 'c': {

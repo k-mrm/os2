@@ -2,9 +2,12 @@
 #include <compiler.h>
 #include <pci.h>
 #include <device.h>
-#include <printk.h>
 #include <kalloc.h>
 #include <x86/pci.h>
+
+#define KPREFIX         "PCI:"
+
+#include <printk.h>
 
 static int
 pcidevprobe (Device *dev)
@@ -46,7 +49,7 @@ pcifind (u16 vendor, u16 device)
 static char *
 pciname (PciDev *pci, char *name)
 {
-        sprintf (name, "%x:%x.%x", pci->bus, DEVNO (pci->devfn), FUNCNO (pci->devfn));
+        sprintf (name, "%02x:%02x.%02x", pci->bus, DEVNO (pci->devfn), FUNCNO (pci->devfn));
         return name;
 }
 
@@ -73,7 +76,7 @@ void INIT
 initpci (void)
 {
         int bn, dn, fn;
-        u16 v = 0, d = 0;
+        u16 v = 0;
         u8 headertype;
 
 	for (bn = 0; bn < 256; bn++)
@@ -87,9 +90,6 @@ initpci (void)
                 }
 
                 newpci (bn, DEVFN (dn, fn));
-
-                pcicfgread (bn, DEVFN (dn, fn), PCI_CONFIG_DEVICE_ID, sizeof d, &d);
-                trace ("PCI Device: %x.%x:%x %x:%x\n", bn, dn, fn, v, d);
 
                 pcicfgread (bn, DEVFN (dn, fn), PCI_CONFIG_HEADER_TYPE,
                             sizeof headertype, &headertype);

@@ -19,7 +19,7 @@
 typedef struct Hpet Hpet;
 struct Hpet
 {
-        void  *base;
+        volatile void  *base;
         Phys  basepa; 
 
         bool  cnt64;
@@ -113,12 +113,12 @@ hpetprobe (Device *dev)
         Timer *tm   = (Timer *)dev->priv;
         Hpet  *hpet = tm->priv;
         u32   id, clkperiod;
-        void  *base;
+        IOMEM *iomem;
 
-        base = iomap (hpet->basepa, HPET_MMIO_SIZE);
-        if (!base)
+        iomem = iomap (dev, hpet->basepa, HPET_MMIO_SIZE);
+        if (!iomem)
                 return -1;
-        hpet->base = base;
+        hpet->base = iomem->base;
 
         hpetctrl (hpet, false);
 

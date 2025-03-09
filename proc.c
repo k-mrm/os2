@@ -253,7 +253,7 @@ testtask1 (void *a)
         int i = 0;
         for (;;)
         {
-                printk ("testtask1 %p %d\n", a, i++);
+                printk ("testtask1 %p %04d\n", a, i++);
                 for (int n = 0; n < 10000000; n++)
                         ;
                 if (i == 100)
@@ -267,7 +267,7 @@ testtask2 (void *a)
         int i = 0;
         for (;;)
         {
-                printk ("testtask2 %p %d\n", a, i++);
+                printk ("testtask2 %p %04d\n", a, i++);
                 for (int n = 0; n < 10000000; n++)
                         ;
                 if (i == 30)
@@ -281,7 +281,7 @@ testtask3 (void *a)
         int i = 0;
         for (;;)
         {
-                printk ("testtask3 %p %d\n", a, i++);
+                printk ("testtask3 %p %04d\n", a, i++);
                 for (int n = 0; n < 10000000; n++)
                         ;
                 if (i == 40)

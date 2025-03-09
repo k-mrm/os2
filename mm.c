@@ -106,7 +106,7 @@ kremap (void *va, Phys pa, ulong flags)
 }
 
 void *
-iomap (Phys pa, ulong nbytes)
+devmmap (Phys pa, ulong nbytes)
 {
         void *va;
         ulong flags = pdevice () | pwritable () | pnocache ();

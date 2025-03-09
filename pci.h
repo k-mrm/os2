@@ -45,16 +45,18 @@ struct PciDriver
 
 struct PciDev
 {
-        DEVICE_STRUCT;
+        Device          *device;
 
-        PciDriver     *driver;
-        u8            bus;
-        u8            devfn;
-        u16           vendorid;
-        u16           deviceid;
-        u8            hdrtype;
+        IOMEM           *bar[10];
+        PciDriver       *driver;
 
-        void          *priv;
+        u8              bus;
+        u8              devfn;
+        u16             vendorid;
+        u16             deviceid;
+        u8              hdrtype;
+
+        void            *priv;
 };
 
 void initpci (void) INIT;

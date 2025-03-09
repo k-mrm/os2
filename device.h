@@ -3,6 +3,7 @@
 
 #include <types.h>
 #include <compiler.h>
+#include <iomem.h>
 
 typedef enum DeviceType     DeviceType;
 typedef struct Driver       Driver;
@@ -26,12 +27,14 @@ struct Driver
 
 struct Device
 {
-        Device    *parent;
-        char      *type;
-        char      name[40];
+        Device  *parent;
+        char    *type;
+        char    name[40];
 
-        Driver    *driver;
-        void      *priv;     // private device information
+        List    *iomem;
+
+        Driver  *driver;
+        void    *priv;     // private device information
 };
 
 struct DeviceStruct

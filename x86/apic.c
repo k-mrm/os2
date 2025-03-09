@@ -235,7 +235,7 @@ apicprobe (Device *dev)
         IrqChip *irqchip = (IrqChip *)dev->priv;
         Apic    *apic    = (Apic *)irqchip->priv;
 
-        if (apic->ops->probe (apic) < 0)
+        if (apic->ops->probe (dev, apic) < 0)
                 return -1;
 
         // Set Sprious Interrupt Vector

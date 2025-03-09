@@ -3,6 +3,8 @@
 #include <panic.h>
 #include <kalloc.h>
 #include <mm.h>
+#include <device.h>
+#include <iomem.h>
 #include "arch.h"
 #include "apic.h"
 
@@ -72,17 +74,17 @@ apicbaseaddr (void)
 }
 
 static int
-xapicprobe (Apic *apic)
+xapicprobe (Device *dev, Apic *apic)
 {
-        void *xapic;
+        IOMEM *iomem;
 
         enxapic ();
-        xapic = iomap (apicbaseaddr (), PAGESIZE);
-        if (!xapic)
+        iomem = iomap (dev, apicbaseaddr (), PAGESIZE);
+        if (!iomem)
                 return -1;
 
         apic->basepa  = apicbaseaddr ();
-        apic->base    = xapic;
+        apic->base    = iomem->base;
         return 0;
 }
 

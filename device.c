@@ -3,6 +3,7 @@
 #include <device.h>
 #include <timer.h>
 #include <printk.h>
+#include <mm.h>
 #include <string.h>
 
 #define FOREACH_DEVICE(_dev)  \
@@ -131,6 +132,33 @@ lsdev (void)
                         printk ("    %s\n", dev->driver->description);
                 }
         }
+}
+
+IOMEM *
+iomap (Device *dev, Phys base, uint size)
+{
+        IOMEM   *iomem;
+
+        if (!dev->iomem)
+                dev->iomem = newlist ();
+
+        iomem = alloc ();
+        if (!iomem)
+        {
+                return NULL;
+        }
+
+        iomem->base     = devmmap (base, size);
+        if (!iomem->base)
+        {
+                return NULL;
+        }
+        iomem->pbase    = base;
+        iomem->size     = size;
+
+        PUSH (dev->iomem, iomem);
+
+        return iomem;
 }
 
 int

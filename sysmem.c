@@ -147,7 +147,7 @@ bootmemalloc (uint nbytes, uint align)
 
         va = P2V (pa);
         memset (va, 0, nbytes);
-        trace ("alloc bootmem %p bytes: %p-%p %p\n", nbytes, pa, pa + nbytes - 1, va);
+        trace ("alloc bootmem %#x bytes: %#x-%#x %p\n", nbytes, pa, pa + nbytes - 1, va);
         return va;
 }
 
@@ -160,7 +160,7 @@ memchunkdump (MemChunk *c)
         trace ("memchunk %s:\n", c->name);
         FOREACH_MEMCHUNK_BLOCK (c, i, b)
         {
-                trace ("\t[%p-%p]\n", b->base, b->base + b->size - 1);
+                trace ("\t[%#x-%#x]\n", b->base, b->base + b->size - 1);
         }
 }
 
@@ -244,7 +244,7 @@ memnewblock (MemChunk *c, Phys start, ulong size)
         MemBlock *block;
         uint idx = 0;
 
-        log ("%s [%p-%p]\n", c->name, start, start + size - 1);
+        log ("%s [%#x-%#x]\n", c->name, start, start + size - 1);
 
         FOREACH_MEMCHUNK_BLOCK (c, idx, block)
         {

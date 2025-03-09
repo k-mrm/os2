@@ -23,7 +23,7 @@ struct Vas
 };
 
 void initkerneladdrspace (Vas *vas);
-void *iomap (Phys pa, ulong nbytes);
+void *devmmap (Phys pa, ulong nbytes);
 Vas *kernelas (void);
 
 #endif  // __MM_H
