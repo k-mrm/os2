@@ -10,7 +10,7 @@ typedef struct IrqChip    IrqChip;
 
 struct IrqChip
 {
-        DEVICE_STRUCT;
+        Device  *device;
 
         void    (*eoi) (Irq *irq);
         int     (*ack) (Irq *irq);

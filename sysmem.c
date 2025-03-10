@@ -28,7 +28,6 @@ reservekernelarea (void)
         kstartpa = V2P (__kstart);
         kendpa   = V2P (__kend);
         ksize = PAGEALIGN (kendpa - kstartpa);
-        trace ("kernel image @%p-%p\n", kstartpa, kendpa);
 
         sysrsrvmem (kstartpa, ksize);
 }
@@ -147,28 +146,7 @@ bootmemalloc (uint nbytes, uint align)
 
         va = P2V (pa);
         memset (va, 0, nbytes);
-        trace ("alloc bootmem %#x bytes: %#x-%#x %p\n", nbytes, pa, pa + nbytes - 1, va);
         return va;
-}
-
-static void DEBUG
-memchunkdump (MemChunk *c)
-{
-        MemBlock *b;
-        uint i;
-
-        trace ("memchunk %s:\n", c->name);
-        FOREACH_MEMCHUNK_BLOCK (c, i, b)
-        {
-                trace ("\t[%#x-%#x]\n", b->base, b->base + b->size - 1);
-        }
-}
-
-static void DEBUG
-sysmemdump (void)
-{
-        memchunkdump (&sysmem.avail);
-        memchunkdump (&sysmem.rsrv);
 }
 
 static void
@@ -232,10 +210,9 @@ memchunkmerge (MemChunk *c)
                         block->size = end - start;
                         continue;
                 }
+
                 i++;
         }
-
-        // MemchunkDump(c);
 }
 
 static void
@@ -243,8 +220,6 @@ memnewblock (MemChunk *c, Phys start, ulong size)
 {
         MemBlock *block;
         uint idx = 0;
-
-        log ("%s [%#x-%#x]\n", c->name, start, start + size - 1);
 
         FOREACH_MEMCHUNK_BLOCK (c, idx, block)
         {

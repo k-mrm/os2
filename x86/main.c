@@ -8,6 +8,8 @@
 #include "mm.h"
 #include "pci.h"
 
+void NORETURN kernelmain (void);
+
 void NORETURN INIT
 x86main (MultiBootInfo *mb)
 {

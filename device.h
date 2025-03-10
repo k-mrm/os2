@@ -9,7 +9,6 @@ typedef enum DeviceType     DeviceType;
 typedef struct Driver       Driver;
 typedef struct Device       Device;
 typedef struct Bus          Bus;
-typedef struct DeviceStruct DeviceStruct;
 
 struct Driver
 {
@@ -37,23 +36,16 @@ struct Device
         void    *priv;     // private device information
 };
 
-struct DeviceStruct
-{
-        Device *device;
-};
-
-#define DEVICE_STRUCT       DeviceStruct device
-
 struct Bus
 {
-        DEVICE_STRUCT;
+        ;
 };
 
 void devprobe (char *type);
 void mydevprobe (char *type);
-int regdevicemycpu (char *ty, char *name, Bus *bus, Driver *drv, Device *parent, DeviceStruct *priv);
-int regdevicecpu (int id, char *ty, char *name, Bus *bus, Driver *drv, Device *parent, DeviceStruct *priv);
-int regdevice (char *ty, char *name, Bus *bus, Driver *drv, Device *parent, DeviceStruct *priv);
+Device *regdevicemycpu (char *ty, char *name, Bus *bus, Driver *drv, Device *parent, void *priv);
+Device *regdevicecpu (int id, char *ty, char *name, Bus *bus, Driver *drv, Device *parent, void *priv);
+Device *regdevice (char *ty, char *name, Bus *bus, Driver *drv, Device *parent, void *priv);
 int regbus (char *name, Bus *parent);
 
 #endif  // _DEVICE_H

@@ -29,51 +29,55 @@ newdevicecpu (int cpu)
         return &mydevs[cpu][cmydev++];
 }
 
-int
+Device *
 regdevicemycpu (char *ty, char *name, Bus *bus, Driver *drv, Device *parent,
-                DeviceStruct *priv)
+                void *priv)
 {
         return regdevicecpu (0, ty, name, bus, drv, parent, priv);
 }
 
-int
+Device *
 regdevicecpu (int cpu, char *ty, char *name, Bus *bus, Driver *drv, Device *parent,
-              DeviceStruct *priv)
+              void *priv)
 {
-        Device *dev = newdevicecpu (cpu);
+        Device *dev;
+        
+        if (!drv)
+                return NULL;
+
+        dev = newdevicecpu (cpu);
 
         if (!dev)
-                return -1;
-        if (!drv)
-                return -1;
+                return NULL;
 
         dev->type     = ty;
         dev->parent   = parent;
         strcpy (dev->name, name);
         dev->driver   = drv;
         dev->priv     = priv;
-        priv->device  = dev;
-        return 0;
+        return dev;
 }
 
-int
+Device *
 regdevice (char *ty, char *name, Bus *bus, Driver *drv, Device *parent,
-           DeviceStruct *priv)
+           void *priv)
 {
-        Device *dev = newdevice ();
+        Device *dev;
+
+        if (!drv)
+                return NULL;
+        
+        dev = newdevice ();
 
         if (!dev)
-                return -1;
-        if (!drv)
-                return -1;
+                return NULL;
 
         dev->type     = ty;
         dev->parent   = parent;
         strcpy (dev->name, name);
         dev->driver   = drv;
         dev->priv     = priv;
-        priv->device  = dev;
-        return 0;
+        return dev;
 }
 
 void
@@ -151,7 +155,7 @@ iomap (Device *dev, Phys base, uint size)
         iomem->base     = devmmap (base, size);
         if (!iomem->base)
         {
-                return NULL;
+                goto failed;
         }
         iomem->pbase    = base;
         iomem->size     = size;
@@ -159,6 +163,9 @@ iomap (Device *dev, Phys base, uint size)
         PUSH (dev->iomem, iomem);
 
         return iomem;
+failed:
+        free (iomem);
+        return NULL;
 }
 
 int

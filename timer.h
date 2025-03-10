@@ -11,7 +11,7 @@ typedef struct EventTimer EventTimer;
 
 struct Timer
 {
-        DEVICE_STRUCT;
+        Device  *device;
 
         void    *priv;
         bool    global;
@@ -22,7 +22,7 @@ struct Timer
 
 struct EventTimer
 {
-        DEVICE_STRUCT;
+        Device  *device;
 
         void  *priv;
         bool  global;

@@ -79,8 +79,8 @@ probetimer (Device *dev)
         if (tm->global)
         {
                 if (systimer)
-                        log ("systimer changed\n");
-                log ("new systimer: %d\n", dev->name);
+                        warn ("systimer changed\n");
+                log ("new systimer: %s\n", dev->name);
                 systimer = tm;
                 return 0;
         }

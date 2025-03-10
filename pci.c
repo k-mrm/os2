@@ -46,6 +46,18 @@ pcifind (u16 vendor, u16 device)
         ;
 }
 
+static int
+pciloaddriver (PciDev *pci, PciDriver *drv)
+{
+        return -1;
+}
+
+static PciDriver *
+pcigetdriver (PciDev *pci)
+{
+        ;
+}
+
 static char *
 pciname (PciDev *pci, char *name)
 {
@@ -57,6 +69,7 @@ static int
 newpci (int bus, int devfn)
 {
         PciDev *pci;
+        Device *dev;
         char name[40] = {0};
         
         pci = alloc ();
@@ -69,7 +82,14 @@ newpci (int bus, int devfn)
         pci->deviceid   = pciread (pci, PCI_CONFIG_DEVICE_ID, 2);
         pci->hdrtype    = pciread (pci, PCI_CONFIG_HEADER_TYPE, 1);
 
-        return regdevice ("PCI", pciname (pci, name), NULL, &pcidriver, NULL, (DeviceStruct*)pci);
+        dev = regdevice ("PCI", pciname (pci, name), NULL, &pcidriver, NULL, pci);
+        if (!dev)
+        {
+                return -1;
+        }
+
+        pci->device = dev;
+        return 0;
 }
 
 void INIT
@@ -89,7 +109,10 @@ initpci (void)
                         continue;
                 }
 
-                newpci (bn, DEVFN (dn, fn));
+                if (newpci (bn, DEVFN (dn, fn)) < 0)
+                {
+                        warn ("PCI? %02x:%02x:%02x\n", bn, dn, fn);
+                }
 
                 pcicfgread (bn, DEVFN (dn, fn), PCI_CONFIG_HEADER_TYPE,
                             sizeof headertype, &headertype);

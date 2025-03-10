@@ -19,12 +19,10 @@ mb2parsebootinfo(MultiBootInfo *mb)
                 {
                 case MULTIBOOT_TAG_TYPE_CMDLINE: {
                         MultiBootTagString *cmd = (MultiBootTagString *)tag;
-                        log ("Kernel Parameter: %s\n", cmd->string);
                         break;
                 }
                 case MULTIBOOT_TAG_TYPE_BOOTDEV: {
                         MultiBootTagBootdev *dev = (MultiBootTagBootdev *)tag;
-                        log ("Boot dev: 0x%x\n", dev->biosdev);
                         break;
                 }
                 case MULTIBOOT_TAG_TYPE_MMAP: {

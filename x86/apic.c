@@ -215,7 +215,9 @@ static void INIT
 apictimerinit (Apic *apic)
 {
         // timer = malloc (sizeof *timer);
-        LapicTimer *timer = alloc ();
+        LapicTimer      *timer = alloc ();
+        Device  *dev;
+
         if (!timer)
         {
                 warn ("cannot initialize lapic timer\n");
@@ -226,7 +228,12 @@ apictimerinit (Apic *apic)
 
         lapictimer.priv = timer;
 
-        regdevicemycpu ("eventtimer", "LAPICTimer", NULL, &apictimerdriver, NULL, (DeviceStruct *)&lapictimer);
+        dev = regdevicemycpu ("eventtimer", "LAPICTimer", NULL, &apictimerdriver, NULL, &lapictimer);
+        if (!dev)
+        {
+                return;
+        }
+        lapictimer.device = dev;
 }
 
 static int INIT
@@ -266,7 +273,8 @@ static IrqChip apicirqchip = {
 void INIT
 apicinit (u32 id, ApicOps *ops)
 {
-        Apic *apic;
+        Apic    *apic;
+        Device  *dev;
         if (id != 0)
                 panic ("unimpl");
 
@@ -277,5 +285,8 @@ apicinit (u32 id, ApicOps *ops)
         apic->id  = id;
         apicirqchip.priv = apic;
 
-        regdevicecpu (id, "irqchip", "localapic", NULL, &apicdrv, NULL, (DeviceStruct *)&apicirqchip);
+        dev = regdevicecpu (id, "irqchip", "localapic", NULL, &apicdrv, NULL, &apicirqchip);
+        if (!dev)
+                panic ("acpi");
+        apicirqchip.device = dev;
 }

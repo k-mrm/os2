@@ -13,7 +13,7 @@ typedef struct Cpu    Cpu;
 
 struct Cpu
 {
-        DEVICE_STRUCT;
+        Device  *device;
 
         int     cpuid;
         Proc    *currentproc;

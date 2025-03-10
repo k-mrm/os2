@@ -1,20 +1,22 @@
 #include <types.h>
+#include <compiler.h>
 #include <console.h>
 #include <printk.h>
 
 Console *console = NULL;
 
-void
-kernelconsole (Console *cons)
+int
+probeconsole (Device *dev)
 {
-        int rc = -1;
+        return -1;
+}
 
-        if (cons && cons->init)
-                rc = cons->init (cons);
-
-        if (!rc)
+void
+earlyconsole (EarlyConsole *ec)
+{
+        if (ec->console)
         {
-                console = cons;
-                printk ("current console: %s\n", console->name);
+                console = ec->console;
+                printk ("using earlycon: %s\n", ec->name);
         }
 }

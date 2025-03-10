@@ -52,10 +52,17 @@ static Driver cpudrv = {
 void
 regcpu (int cpuid)
 {
-        char *a    = zalloc ();   // malloc
-        Cpu  *cpu  = zalloc ();
+        Cpu     *cpu  = zalloc ();
+        char    a[40] = {0};
+        Device  *dev;
 
         cpu->cpuid = cpuid;
         sprintf (a, "cpu%d", cpuid);
-        regdevicecpu (cpuid, "cpu", a, NULL, &cpudrv, NULL, (DeviceStruct *)cpu);
+        dev = regdevicecpu (cpuid, "cpu", a, NULL, &cpudrv, NULL, cpu);
+        if (!dev)
+        {
+                panic ("cpu");
+        }
+
+        cpu->device = dev;
 }

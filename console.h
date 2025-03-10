@@ -2,20 +2,30 @@
 #define _CONSOLE_H
 
 #include <types.h>
+#include <device.h>
 
-typedef struct Console    Console;
+typedef struct EarlyConsole     EarlyConsole;
+typedef struct Console  Console;
 
-struct Console {
-  const char name[16];
-  void *priv;
+struct EarlyConsole
+{
+        char    name[40];
+        Console *console;
+};
 
-  int (*init) (Console *);
-  void (*write) (Console *, const char *, uint);
-  void (*read) (Console *, char *, uint);
+struct Console
+{
+        Device  *device;
+
+        void    *priv;
+
+        int     (*write) (Console *, const char *, uint);
+        int     (*read) (Console *, char *, uint);
 };
 
 extern Console *console;
 
-void kernelconsole (Console *cs);
+int probeconsole (Device *dev);
+void earlyconsole (EarlyConsole *ec);
 
 #endif  // _CONSOLE_H

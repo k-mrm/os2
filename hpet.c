@@ -163,7 +163,8 @@ static Timer tmhpet = {
 int INIT
 hpetinit (Phys baseaddr, int n)
 {
-        Hpet *hpet;
+        Hpet    *hpet;
+        Device  *dev;
 
         sysrsrvmem (baseaddr, HPET_MMIO_SIZE);
         hpet = bootmemalloc (sizeof *hpet, _Alignof (*hpet));
@@ -173,5 +174,9 @@ hpetinit (Phys baseaddr, int n)
         hpet->basepa = baseaddr;
         tmhpet.priv  = hpet;
 
-        return regdevice ("timer", "HPET", NULL, &hpetdriver, NULL, (DeviceStruct*)&tmhpet);
+        dev = regdevice ("timer", "HPET", NULL, &hpetdriver, NULL, &tmhpet);
+        if (!dev)
+                return -1;
+        tmhpet.device = dev;
+        return 0;
 }
