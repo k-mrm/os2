@@ -159,15 +159,14 @@ apictimersetperiod (EventTimer *et, uint ms)
 static int
 apictimerirq (EventTimer *et, Irq *irq)
 {
-        log ("apic timer irq\n");
         return 0;
 }
 
 static EventTimer lapictimer = {
-        .global     = true,
-        .getperiod  = apictimergetperiod,
-        .setperiod  = apictimersetperiod,
-        .irqhandler = apictimerirq,
+        .global         = true,
+        .getperiod      = apictimergetperiod,
+        .setperiod      = apictimersetperiod,
+        .irqhandler     = apictimerirq,
 } PERCPU;
 
 static Driver apictimerdriver = {

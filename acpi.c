@@ -110,9 +110,9 @@ rsdtdump (void)
         trace ("ACPI RSDT:\n");
         FOREACH_RSDT (rsdt, ent, i)
         {
-                trace ("\t%s (%s %s)\n", ent->signature,
-                                         ent->oemid,
-                                         ent->oemtableid);
+                trace ("\t%.4s (%s %s)\n", ent->signature,
+                                           ent->oemid,
+                                           ent->oemtableid);
         }
 }
 
@@ -125,9 +125,9 @@ xsdtdump (void)
         trace ("ACPI XSDT:\n");
         FOREACH_XSDT (xsdt, ent, i)
         {
-                trace ("\t%s (%s %s)\n", ent->signature,
-                                         ent->oemid,
-                                         ent->oemtableid);
+                trace ("\t%.4s (%s %s)\n", ent->signature,
+                                           ent->oemid,
+                                           ent->oemtableid);
         }
 }
 

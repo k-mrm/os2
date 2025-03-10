@@ -8,6 +8,7 @@ typedef struct OPTION
         int     n;
         bool    zero;
         bool    pr0x;
+        bool    strcut;
 } OPTION;
 
 static uint
@@ -110,6 +111,11 @@ parseopt (const char *str, OPTION *opt)
 
         memset (opt, 0, sizeof *opt);
 
+        if (*str == '.')
+        {
+                str++;
+                opt->strcut = true;
+        }
         if (*str == '#')
         {
                 str++;
@@ -181,6 +187,7 @@ vsprintf (char *buf, const char *fmt, va_list ap)
                                         s = "(null)";
 
                                 len = strlen (s);
+                                len = (opt.strcut && len > opt.n) ? opt.n : len;
                                 memcpy (buf + n, s, len);
                                 n += len;
                                 break;
