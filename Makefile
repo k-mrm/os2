@@ -41,10 +41,10 @@ objs-1 += printk.o string.o main.o console.o
 objs-1 += hpet.o sysmem.o panic.o
 objs-1 += multiboot.o acpi.o device.o timer.o
 objs-1 += mm.o kalloc.o irq.o proc.o cpu.o symbol.o
-objs-1 += pci.o module.o
+objs-1 += module.o
 
 # Kernel Modules
-objs-1 += driver/test.o
+objs-1 += driver/pci.o driver/test.o
 
 QEMUOPTS = -smp $(NCPU) -m $(MEMSZ)
 QEMUOPTS += -device virtio-net-pci,bus=pci.0,disable-legacy=on,disable-modern=off

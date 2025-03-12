@@ -24,7 +24,6 @@ kernelmain (void)
         devprobe ("irqchip");
         devprobe ("timer");
         devprobe ("eventtimer");
-        initpci ();
         initmodule ();
         // initfs ();
         initprocess ();

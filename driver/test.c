@@ -3,22 +3,15 @@
 #include <module.h>
 #include <printk.h>
 
-int
+void
 testmodule (void)
 {
         printk ("Hello\n");
-        return 0;
-}
-
-void
-testinit (void)
-{
-        testmodule ();
 }
 
 MODULE_DECL test = {
         .name           = "Test",
         .description    = "just testtest",
-        .init           = testinit,
+        .init           = testmodule,
         .delete         = NULL,
 };

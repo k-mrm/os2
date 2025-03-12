@@ -3,6 +3,7 @@
 #include <pci.h>
 #include <device.h>
 #include <kalloc.h>
+#include <module.h>
 #include <x86/pci.h>
 
 #define KPREFIX         "PCI:"
@@ -92,7 +93,7 @@ newpci (int bus, int devfn)
         return 0;
 }
 
-void INIT
+static void
 initpci (void)
 {
         int bn, dn, fn;
@@ -123,3 +124,10 @@ initpci (void)
                 }
         }
 }
+
+MODULE_DECL pci = {
+        .name           = "pci",
+        .description    = "PCI(e) driver",
+        .init           = initpci,
+        .delete         = NULL,
+};

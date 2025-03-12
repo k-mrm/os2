@@ -59,8 +59,6 @@ struct PciDev
         void            *priv;
 };
 
-void initpci (void) INIT;
-
 static inline u32
 pciread (PciDev *dev, int reg, int size)
 {
