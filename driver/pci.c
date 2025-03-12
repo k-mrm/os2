@@ -10,14 +10,18 @@
 
 #include <printk.h>
 
+List *pcidriver;
+List *pcidevs;
+
 static int
 pcidevprobe (Device *dev)
 {
-        /*
         PciDev *pci = (PciDev *)dev->priv;
 
-        return pci->driver->probe (pci);
-        */
+        if (pci->driver)
+                return pci->driver->probe (pci);
+        else
+                return -1;
 }
 
 static void
@@ -32,7 +36,7 @@ pcidevresume (Device *dev)
         ;
 }
 
-static Driver pcidriver = {
+static Driver driver = {
         .name         = "PCI",
         .description  = "PCI(e) generic driver",
         .probe        = pcidevprobe,
@@ -47,16 +51,55 @@ pcifind (u16 vendor, u16 device)
         ;
 }
 
-static int
-pciloaddriver (PciDev *pci, PciDriver *drv)
+static void
+pcifinddriver (PciDev *pci)
 {
-        return -1;
+        PciDriver *driver;
+        PCI_ID *id;
+
+        FOREACH (pcidriver, driver)
+        {
+                for (id = driver->id; id->vendor != 0; id++)
+                {
+                        if (pci->vendorid == id->vendor &&
+                            pci->deviceid == id->device)
+                        {
+                                pci->driver = driver;
+                                log ("found driver: %s\n", driver->name);
+                                return;
+                        }
+                }
+        }
 }
 
-static PciDriver *
-pcigetdriver (PciDev *pci)
+int
+newpcidriver (PciDriver *drv)
 {
-        ;
+        PciDev *dev;
+        PCI_ID *id;
+
+        if (!pcidriver)
+        {
+                pcidriver = newlist ();
+        }
+
+        PUSH (pcidriver, drv);
+
+        for (id = drv->id; id->vendor != 0; id++)
+        {
+                FOREACH (pcidevs, dev)
+                {
+                        if (dev->vendorid == id->vendor &&
+                            dev->deviceid == id->device)
+                        {
+                                dev->driver = drv;
+                                if (dev->driver->probe)
+                                        dev->driver->probe (dev);
+                        }
+                }
+        }
+
+        return 0;
 }
 
 static char *
@@ -73,7 +116,7 @@ newpci (int bus, int devfn)
         Device *dev;
         char name[40] = {0};
         
-        pci = alloc ();
+        pci = zalloc ();
         if (!pci)
                 return -1;
 
@@ -83,13 +126,17 @@ newpci (int bus, int devfn)
         pci->deviceid   = pciread (pci, PCI_CONFIG_DEVICE_ID, 2);
         pci->hdrtype    = pciread (pci, PCI_CONFIG_HEADER_TYPE, 1);
 
-        dev = regdevice ("PCI", pciname (pci, name), NULL, &pcidriver, NULL, pci);
+        dev = regdevice ("PCI", pciname (pci, name), NULL, &driver, NULL, pci);
         if (!dev)
         {
                 return -1;
         }
-
         pci->device = dev;
+
+        PUSH (pcidevs, pci);
+
+        pcifinddriver (pci);
+
         return 0;
 }
 
@@ -99,6 +146,12 @@ initpci (void)
         int bn, dn, fn;
         u16 v = 0;
         u8 headertype;
+
+        if (!pcidriver)
+        {
+                pcidriver = newlist ();
+        }
+        pcidevs = newlist ();
 
 	for (bn = 0; bn < 256; bn++)
 	for (dn = 0; dn < 32; dn++)
@@ -123,6 +176,8 @@ initpci (void)
                         break;
                 }
         }
+
+        devprobe ("PCI");
 }
 
 MODULE_DECL pci = {

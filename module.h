@@ -16,6 +16,9 @@ struct MODULE
 
         void            (*init) (void);
         void            (*delete) (void);
+
+        bool            initialized;
+        const char      *deps;
 };
 
 struct MODELF

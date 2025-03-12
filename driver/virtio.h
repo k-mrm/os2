@@ -8,6 +8,7 @@
 typedef struct VirtioDevice   VirtioDevice;
 typedef struct VirtioDeviceOp VirtioDeviceOp;
 typedef struct VirtioDriver   VirtioDriver;
+typedef struct VirtQ          VirtQ;
 
 struct VirtioDeviceOp
 {

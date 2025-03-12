@@ -44,7 +44,7 @@ objs-1 += mm.o kalloc.o irq.o proc.o cpu.o symbol.o
 objs-1 += module.o
 
 # Kernel Modules
-objs-1 += driver/pci.o driver/test.o
+objs-1 += driver/pci.o driver/test.o driver/virtio-blk.o driver/virtio.o driver/virtqueue.o
 
 QEMUOPTS = -smp $(NCPU) -m $(MEMSZ)
 QEMUOPTS += -device virtio-net-pci,bus=pci.0,disable-legacy=on,disable-modern=off

@@ -4,10 +4,12 @@
 #include <types.h>
 #include <compiler.h>
 #include <device.h>
+#include <list.h>
 
-typedef struct PciDev     PciDev;
-typedef struct PciDriver  PciDriver;
-typedef struct PciConfig  PciConfig;
+typedef struct PciDev           PciDev;
+typedef struct PciDriver        PciDriver;
+typedef struct PciConfig        PciConfig;
+typedef struct PCI_ID           PCI_ID;
 
 #define DEVFN(_d, _f)   (((_d) << 3) | (_f))
 #define DEVNO(_devfn)   (((_devfn) & 0xf8) >> 3)
@@ -38,13 +40,26 @@ typedef struct PciConfig  PciConfig;
 #define PCI_CONFIG_MIN_GRANT		0x3e
 #define PCI_CONFIG_MAX_LATENCY		0x3f
 
+struct PCI_ID
+{
+        u16     vendor;
+        u16     device;
+};
+
 struct PciDriver
 {
+        LIST (PciDriver);
+
         char    *name;
+        PCI_ID  *id;
+
+        int     (*probe) (PciDev *dev);
 };
 
 struct PciDev
 {
+        LIST (PciDev);
+
         Device          *device;
 
         IOMEM           *bar[10];
@@ -58,6 +73,11 @@ struct PciDev
 
         void            *priv;
 };
+
+int pcicfgread (int bus, int devfn, int reg, int size, u32 *v);
+int pcicfgwrite (int bus, int devfn, int reg, int size, u32 v);
+
+int newpcidriver (PciDriver *drv);
 
 static inline u32
 pciread (PciDev *dev, int reg, int size)
@@ -74,8 +94,5 @@ pciwrite (PciDev *dev, int reg, int size, u32 v)
 {
         pcicfgwrite (dev->bus, dev->devfn, reg, size, v);
 }
-
-int pcicfgread (int bus, int devfn, int reg, int size, u32 *v);
-int pcicfgwrite (int bus, int devfn, int reg, int size, u32 v);
 
 #endif  // _PCI_H

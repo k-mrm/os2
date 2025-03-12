@@ -3,7 +3,8 @@
 
 #include <types.h>
 #include <compiler.h>
-#include <virtio.h>
+
+#include "virtio.h"
 
 typedef struct VQDesc     VQDesc;
 typedef struct VQAvail    VQAvail;

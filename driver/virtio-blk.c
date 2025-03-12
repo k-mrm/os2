@@ -3,7 +3,15 @@
 #include <init.h>
 #include <proc.h>
 #include <block.h>
+#include <module.h>
 #include <pci.h>
+
+#include "virtio.h"
+#include "virtqueue.h"
+
+#define KPREFIX         "virtio-blk:"
+
+#include <printk.h>
 
 typedef struct VirtioBlkCfg   VirtioBlkCfg;
 
@@ -52,6 +60,9 @@ struct VirtioBlkCfg
         u8      unused1[3];
 } PACKED;
 
+#define VIRTIO_BLK_S_OK        0
+#define VIRTIO_BLK_S_IOERR     1
+#define VIRTIO_BLK_S_UNSUPP    2
 struct VirtioBlkReq
 {
 #define VIRTIO_BLK_T_IN           0
@@ -62,18 +73,38 @@ struct VirtioBlkReq
         u32   type;
         u32   reserved;
         u64   sector;
-        u8    data[][512];
-#define VIRTIO_BLK_S_OK        0
-#define VIRTIO_BLK_S_IOERR     1
-#define VIRTIO_BLK_S_UNSUPP    2
-        u8    status;
+        u8    data[];
 } PACKED;
 
-static void
-drvinit ()
+static int
+virtblkpciprobe (PciDev *pci)
 {
-        ;
+        log ("@%02x:%02x %04x:%04x\n", pci->bus, pci->devfn, pci->vendorid, pci->deviceid);
+
+        return 0;
 }
 
-CONSTRUCTOR (drvinit);
-DESTRUCTOR (drvremove);
+static PCI_ID virtblkid[] = {
+        {0x1af4, 0x1001},
+        {0x1af4, 0x1041},
+        {0, 0},
+};
+
+static PciDriver virtioblkpcidrv = {
+        .name           = "virtio-blk",
+        .id             = virtblkid,
+        .probe          = virtblkpciprobe,
+};
+
+void
+virtblkinit (void)
+{
+        newpcidriver (&virtioblkpcidrv);
+}
+
+MODULE_DECL virtioblk = {
+        .name           = "virtio-blk",
+        .description    = "Virtio BLK Device Driver",
+        .init           = virtblkinit,
+        .delete         = NULL,
+};

@@ -81,3 +81,44 @@ strlen (const char *s)
                 i++;
         return i;
 }
+
+char *
+strchr (const char *s, int c)
+{
+        char *p = (char *)s;
+
+        while (*p)
+        {
+                if(*p == c)
+                        return p;
+                p++;
+        }
+
+        return NULL;
+}
+
+char *
+strtok (char *s1, const char *s2)
+{
+        static char *save = "";
+        char *s;
+
+        if (s1)
+                save = s1;
+        else
+                s1 = save;
+        s = s1;
+
+        while (*s1)
+        {
+                if (strchr (s2, *s1))
+                {
+                        *s1++ = 0;
+                        save = s1;
+                        return s;
+                }
+                s1++;
+        }
+
+        return NULL;
+}

@@ -9,11 +9,12 @@
 typedef struct BlockDev   BlockDev;
 
 struct BlockDev {
-  DEVICE_STRUCT;
-  void    *priv;
+        Device  *device;
 
-  int     (*read) (BlockDev *dev, void *buf, ulong bno, int size);
-  int     (*write) (BlockDev *dev, void *buf, ulong bno, int size);
+        void    *priv;
+
+        int     (*read) (BlockDev *dev, void *buf, ulong bno, int size);
+        int     (*write) (BlockDev *dev, void *buf, ulong bno, int size);
 };
 
 int probeblock (Device *dev);

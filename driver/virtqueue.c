@@ -1,8 +1,9 @@
 #include <types.h>
 #include <compiler.h>
-#include <virtio.h>
 #include <kalloc.h>
-#include <virtqueue.h>
+#include <printk.h>
+
+#include "virtqueue.h"
 
 void
 vqreg (VirtQ *vq)
@@ -18,7 +19,7 @@ vqkick (VirtQ *vq)
         VirtioDevice *dev = vq->dev;
 
         if (!(vq->used->flags & VIRTQ_USED_F_NO_NOTIFY))
-                dev->op->notify (dev, vq->sel);
+                dev->op->notify (dev, vq->qsel);
 }
 
 int
