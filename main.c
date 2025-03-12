@@ -11,6 +11,7 @@
 #include <fs.h>
 #include <x86/arch.h>
 #include <symbol.h>
+#include <module.h>
 
 void NORETURN
 kernelmain (void)
@@ -24,6 +25,7 @@ kernelmain (void)
         devprobe ("timer");
         devprobe ("eventtimer");
         initpci ();
+        initmodule ();
         // initfs ();
         initprocess ();
         apmain ();

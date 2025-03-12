@@ -58,7 +58,14 @@ SECTIONS {
 		__boot_pd = .;
 		. += 4096;
 		__boot_pgt_e = .;
-  }
+        }
+
+        . = ALIGN(4096);
+        .module : AT(ADDR(.module) - offset) {
+                __module_s = .;
+                KEEP(*(.module))
+                __module_e = .;
+        }
 
 	. = ALIGN(4096);
 	.bss : AT(ADDR(.bss) - offset) {
