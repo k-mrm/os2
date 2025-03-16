@@ -93,7 +93,7 @@ $(iso): elf grub.cfg
 	@grub-mkrescue -o $@ iso/
 
 clean:
-	$(RM) $(objs-1) $(objs-$(ARCH)) $(elf) $(fakeelf) $(iso) $(img) $(map) symbol.inc.h
+	$(RM) $(objs-1) $(objs-$(ARCH)) $(elf) $(fakeelf) $(iso) $(img) $(map) symbol.inc.h fs.img
 	$(RM) -rf iso/
 
 #qemu-img: $(img)

@@ -11,6 +11,7 @@ typedef struct BlockDev BlockDev;
 typedef struct BUF      BUF;
 
 #define B_VALID         (1)
+#define B_DIRTY         (1 << 1)
 
 struct BUF
 {
@@ -20,7 +21,7 @@ struct BUF
 
         int             bno;
         int             flags;
-        char            data[1024];
+        unsigned char   data[1024];
         uint            refcount;
 };
 
@@ -40,6 +41,9 @@ int probeblock (BlockDev *dev);
 BUF *bread (BlockDev *dev, int bno);
 BUF *readbootblock (BlockDev *dev);
 BUF *readsuperblock (BlockDev *dev);
+void brelease (BUF *buf);
+void bcachefree (void);
+void bsync (void);
 
 BlockDev *getblkdev (char *name);
 

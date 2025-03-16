@@ -83,6 +83,53 @@ readsuperblock (BlockDev *dev)
         return bread (dev, 1);
 }
 
+void
+brelease (BUF *buf)
+{
+        if (buf->refcount == 0)
+                panic ("refcount");
+
+        buf->refcount--;
+
+        if (buf->refcount == 0)
+        {
+                if (buf->flags & B_DIRTY)
+                {
+                        buf->dev->write (buf->dev, buf);
+                }
+        }
+}
+
+void
+bcachefree (void)
+{
+        BUF *buf;
+
+        FOREACH (bcache.cache, buf)
+        {
+                if (buf->refcount == 0)
+                {
+                        listdelete (buf);
+                        free (buf);
+                }
+        }
+}
+
+void
+bsync (void)
+{
+        BUF *buf;
+
+        FOREACH (bcache.cache, buf)
+        {
+                if (buf->refcount != 0 && buf->flags & B_DIRTY)
+                {
+                        buf->dev->write (buf->dev, buf);
+                        buf->flags &= ~B_DIRTY; 
+                }
+        }
+}
+
 int
 probeblock (BlockDev *dev)
 {
