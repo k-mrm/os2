@@ -53,3 +53,4 @@ dkms.conf
 *.iso
 *.inc.h
 iso/
+*.img
