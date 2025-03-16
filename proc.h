@@ -6,6 +6,7 @@
 #include <cpu.h>
 #include <mm.h>
 #include <list.h>
+#include <fs.h>
 #include <x86/context.h>
 #include <x86/trap.h>
 
@@ -26,25 +27,26 @@ struct Proc
         LIST (Proc);
 
         // Lock       lock;
-        ProcState     state;
-        char          pname[32];
+        ProcState       state;
+        char            pname[32];
 
-        Proc          *parent;
-        Vas           *as;    // address space
-        uint          procid;
-        Cpu           *currentcpu;
-        Trapframe     *tf;
-        Context       context;
-        void          *kstack;
-        void          *ksp;
+        Proc            *parent;
+        Vas             *as;    // address space
+        uint            procid;
+        Cpu             *currentcpu;
+        Trapframe       *tf;
+        Context         context;
+        void            *kstack;
+        void            *ksp;
+        INODE           *cwd;
 
-        int           exitstatus;
-        bool          paniconexit;
+        int             exitstatus;
+        bool            paniconexit;
 
-        bool          user;
+        bool            user;
         // for kernel process
-        int           (*func) (void *arg);
-        void          *arg;
+        int             (*func) (void *arg);
+        void            *arg;
 };
 
 void initprocess (void);

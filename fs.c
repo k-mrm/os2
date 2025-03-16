@@ -246,6 +246,7 @@ fsdbg (void)
                 trace ("found inum: %d\n", ino->inum);
                 fs->op->readi (ino, buf, 0, 127);
                 trace ("%s\n", buf);
+                iput (ino);
         }
         else
         {

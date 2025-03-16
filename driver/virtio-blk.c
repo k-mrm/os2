@@ -1,6 +1,5 @@
 #include <compiler.h>
 #include <types.h>
-#include <init.h>
 #include <proc.h>
 #include <block.h>
 #include <module.h>
