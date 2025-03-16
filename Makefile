@@ -41,10 +41,11 @@ objs-1 += printk.o string.o main.o console.o
 objs-1 += hpet.o sysmem.o panic.o
 objs-1 += multiboot.o acpi.o device.o timer.o
 objs-1 += mm.o kalloc.o irq.o proc.o cpu.o symbol.o
-objs-1 += module.o
+objs-1 += module.o block.o fs.o ramdisk.o
 
 # Kernel Modules
 objs-1 += driver/pci.o driver/test.o driver/virtio-blk.o driver/virtio.o driver/virtqueue.o
+objs-1 += fs/ext2.o
 
 QEMUOPTS = -smp $(NCPU) -m $(MEMSZ)
 QEMUOPTS += -device virtio-net-pci,bus=pci.0,disable-legacy=on,disable-modern=off
@@ -63,17 +64,21 @@ symbol.inc.h:
 	@echo CC $@
 	@$(CC) $(CFLAGS) -c $< -o $@
 
-$(fakeelf): symbol.inc.h $(ARCH)/link.ld $(objs-1) $(objs-$(ARCH)) $(CONFIG)
+fs.img:
+	dd if=/dev/zero of=fs.img count=10000
+	mkfs -t ext2 -d rootfs/ -v fs.img -b 1024
+
+$(fakeelf): symbol.inc.h $(ARCH)/link.ld $(objs-1) $(objs-$(ARCH)) $(CONFIG) fs.img
 	@echo LD $@
-	@$(LD) -n -Map $(map) --no-relax -T $(ARCH)/link.ld -o $@ $(objs-1) $(objs-$(ARCH))
+	@$(LD) -n -Map $(map) --no-relax -T $(ARCH)/link.ld -o $@ $(objs-1) $(objs-$(ARCH)) -b binary fs.img
 
 symbol: $(fakeelf)
 	@echo Generate Symbols...
 	@nm -a $(fakeelf) | grep ' T ' | sort | awk '{printf("{0x%s,\"%s\"},\n", $$1, $$3)}' > symbol.inc.h
 
-$(elf): symbol $(ARCH)/link.ld $(objs-1) $(objs-$(ARCH)) $(CONFIG)
+$(elf): symbol $(ARCH)/link.ld $(objs-1) $(objs-$(ARCH)) $(CONFIG) fs.img
 	@echo LD $@
-	@$(LD) -n -Map $(map) --no-relax -T $(ARCH)/link.ld -o $@ $(objs-1) $(objs-$(ARCH))
+	@$(LD) -n -Map $(map) --no-relax -T $(ARCH)/link.ld -o $@ $(objs-1) $(objs-$(ARCH)) -b binary fs.img
 
 elf: $(elf)
 	@touch symbol.c
