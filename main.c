@@ -38,7 +38,6 @@ apmain (void)
         mydevprobe ("irqchip");
         mydevprobe ("timer");
         mydevprobe ("eventtimer");
-        initkernelproc ();
 
         lsdev ();
 

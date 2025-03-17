@@ -54,3 +54,4 @@ dkms.conf
 *.inc.h
 iso/
 *.img
+initcode

@@ -22,9 +22,11 @@ struct Vas
         bool      user;
 };
 
-void initkerneladdrspace (Vas *vas);
+void kernelmap (void) INIT;
 void *devmmap (Phys pa, ulong nbytes);
 Vas *kernelas (void);
+Vas *allocvas (void);
+void mappages (Vas *vas, ulong va, Phys pa, ulong size, ulong flags, bool remap);
+Vas *uservas (void);
 
 #endif  // __MM_H
-

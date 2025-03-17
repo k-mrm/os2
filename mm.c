@@ -59,7 +59,7 @@ pagewalk (Vas *vas, ulong va, bool allocpgt)
         return &pgt[PIDX (level, va)];
 }
 
-static void
+void
 mappages (Vas *vas, ulong va, Phys pa, ulong size, ulong flags, bool remap)
 {
         PTE *pte;
@@ -82,7 +82,7 @@ addrwalk (Vas *vas, ulong va)
         PTE *pte = pagewalk (vas, va, false);
 
         if (pte && (*pte & ppresent ()))
-                return PTE_PA(*pte);
+                return PTE_PA (*pte);
         else
                 return 0;
 }
@@ -103,6 +103,21 @@ static void
 kremap (void *va, Phys pa, ulong flags)
 {
         mappages (&kernvas, (ulong)va, pa, PAGESIZE, flags, true);
+}
+
+Vas *
+uservas (void)
+{
+        Vas *vas;
+
+        vas = alloc ();
+        vas->pgdir = zalloc ();
+        memcpy (vas->pgdir, kernvas.pgdir, PAGESIZE);
+        vas->level = kernvas.level;
+        vas->lowestlevel = kernvas.lowestlevel;
+        vas->user = true;
+
+        return vas;
 }
 
 void *

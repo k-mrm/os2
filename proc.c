@@ -7,6 +7,7 @@
 #include <proc.h>
 #include <list.h>
 #include <x86/arch.h>
+#include <x86/mm.h>
 #include <x86/trap.h>
 
 #define KPREFIX       "proc:"
@@ -35,6 +36,9 @@ static Proc       *kidle;
 static uint       procidtable = 0;
 static RunQueue   rq;
 static PFreeList  freelist;
+
+#define USTACKTOP     0x7ffffff000
+#define USTACKBOTTOM  (USTACKTOP - PAGESIZE)
 
 static void
 rqinit (RunQueue *r)
@@ -87,7 +91,20 @@ initnewproctf (Proc *p, Trapframe *tf)
 {
         if (p->user)
         {
-                ;
+                u64 cs, rflags, ss;
+                asm volatile ("mov  %%cs, %0" : "=r" (cs));
+                asm volatile ("mov  %%ss, %0" : "=r" (ss));
+                asm volatile (
+                        "pushfq\n"
+                        "pop  %0\n" : "=r" (rflags)
+                );
+
+                tf->rip     = 0x1000;
+                tf->rdi     = 0;
+                tf->cs      = cs;
+                tf->rflags  = rflags | EFLAGS_IF;
+                tf->ss      = ss;
+                tf->rsp     = USTACKTOP;
         }
         else
         {
@@ -177,6 +194,7 @@ newproc (char *name, Proc *parent, bool user, int (*pfunc) (void *arg), void *pa
                 p->arg  = parg;
         }
 
+        p->as = NULL;
         p->parent = parent;
 
         strcpy (p->pname, name);
@@ -214,10 +232,32 @@ freeproc (Proc *p)
         free (p);
 }
 
-void
-initkernelproc (void)
+static void
+inituserproc (void)
 {
-        ;
+        Proc *p;
+        extern char _binary_initcode_start[];
+        extern char _binary_initcode_end[];
+        int isize = _binary_initcode_end - _binary_initcode_start;
+        void *stack, *initcode;
+
+        p = newproc ("init0", NULL, true, NULL, NULL);
+        if (!p)
+                return;
+
+        p->as = uservas ();
+        p->cwd = path2ino ("/");
+
+        stack = zalloc ();
+        mappages (p->as, USTACKBOTTOM, V2P (stack), PAGESIZE,
+                  pnormal () | pwritable (), false);
+
+        initcode = zalloc ();
+        memcpy (initcode, _binary_initcode_start, isize);
+        mappages (p->as, 0x1000, V2P (initcode), PAGESIZE,
+                  pnormal () | preadonly () | pexecutable (), false);
+
+        ready (p);
 }
 
 int testtask1 (void *a);
@@ -236,6 +276,8 @@ initprocess (void)
         spawn ("task2", NULL, testtask2, NULL);
         spawn ("task3", NULL, testtask3, NULL);
         spawn ("procfree", NULL, pfreethread, NULL);
+
+        inituserproc ();
 }
 
 int NORETURN
@@ -316,7 +358,9 @@ spawn (char *pname, Proc *parent, int (*pfunc) (void *arg), void *parg)
 
         p = newproc (pname, parent, false, pfunc, parg);
         if (!p)
+        {
                 return -1;
+        }
 
         if (strcmp (pname, "kidle") == 0)
         {
@@ -414,7 +458,11 @@ schedule (void)
                 c = &prev->context;
         }
 
-        // switchas (prev->as, next->as);
+        if (next->as)
+        {
+                switchvas (next->as);
+        }
+
         prev = cswitch (c, &next->context, prev);
 
         log ("cswitch returned: last:%s c:%s %d\n",

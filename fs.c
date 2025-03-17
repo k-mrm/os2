@@ -3,6 +3,7 @@
 #include <fs.h>
 #include <list.h>
 #include <string.h>
+#include <proc.h>
 
 #define KPREFIX "fs:"
 
@@ -102,6 +103,13 @@ iput (INODE *ino)
         }
 }
 
+INODE *
+idup (INODE *ino)
+{
+        ino->refcount++;
+        return ino;
+}
+
 static char *
 skippath (char *path, char *name, int *err)
 {
@@ -165,6 +173,8 @@ err:
 INODE *
 path2ino (char *path)
 {
+        Cpu *cpu;
+        Proc *cp;
         INODE *ino;
         FS *fs;
         char name[128] = {0};
@@ -176,7 +186,10 @@ path2ino (char *path)
         }
         else
         {
-                panic ("unimpl");
+                cpu = mycpu ();
+                cp = cpu->currentproc;
+                ino = idup (cp->cwd);
+                fs = ino->fs;
         }
 
         return traverse (fs, ino, path, name);
