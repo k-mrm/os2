@@ -1,4 +1,5 @@
  .text
  main:
-        hlt
+        movl    $0, %eax
+        int     $0x80
         jmp     main

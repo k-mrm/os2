@@ -38,6 +38,10 @@ SECTIONS {
 		KEEP(*(.data.percpu))
 		__percpu_data_e = .;
 
+                __syscalls_s = .;
+                KEEP(*(.data.syscall))
+                __syscalls_e = .;
+
 		*(.data .data.*)
 	}
 

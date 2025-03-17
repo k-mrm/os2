@@ -9,6 +9,7 @@
 #include <cpu.h>
 #include <pci.h>
 #include <fs.h>
+#include <syscall.h>
 #include <x86/arch.h>
 #include <symbol.h>
 #include <module.h>
@@ -28,6 +29,7 @@ kernelmain (void)
         initmodule ();
         initfs ();
         initprocess ();
+        syscallinit ();
         apmain ();
 }
 

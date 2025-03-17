@@ -41,7 +41,7 @@ objs-1 += printk.o string.o main.o console.o
 objs-1 += hpet.o sysmem.o panic.o
 objs-1 += multiboot.o acpi.o device.o timer.o
 objs-1 += mm.o kalloc.o irq.o proc.o cpu.o symbol.o
-objs-1 += module.o block.o fs.o ramdisk.o
+objs-1 += module.o block.o fs.o ramdisk.o syscall.o
 
 # Kernel Modules
 objs-1 += driver/pci.o driver/test.o driver/virtio-blk.o driver/virtio.o driver/virtqueue.o

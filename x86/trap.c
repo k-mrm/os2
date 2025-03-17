@@ -2,6 +2,7 @@
 #include <compiler.h>
 #include <panic.h>
 #include <proc.h>
+#include <syscall.h>
 #include "arch.h"
 #include "mm.h"
 #include "trap.h"
@@ -218,13 +219,14 @@ x86trapinit (void)
 {
         for (uint i = 0; i < NR_INTERRUPT; i++)
                 setgate (idt + i, allvectors[i], SEG_KCODE64, GATEDESC_64_INTR, DPL_KERNEL);
+        setgate (idt + 0x80, allvectors[0x80], SEG_KCODE64, GATEDESC_64_TRAP, DPL_KERNEL);
+
         loadidt (idt, sizeof idt);
 }
 
 static void
 x86pagefault (Trapframe *tf)
 {
-  // PAGEFAULT pf;
         ulong faultaddr = cr2 ();
 
         warn ("page fault @%p (%p)\n", tf->rip, faultaddr);
@@ -236,6 +238,13 @@ x86pagefault (Trapframe *tf)
 
            PageFault (&pf);
            */
+}
+
+static void
+syscallint80 (Trapframe *tf)
+{
+        tf->rax = (u64)syscall (tf->rax, (void*)tf->rdi, (void*)tf->rsi, (void*)tf->rdx,
+                                (void*)tf->r10, (void *)tf->r8, (void *)tf->r9); 
 }
 
 /*
@@ -251,6 +260,9 @@ trap (Trapframe *tf)
         {
         case E_PF: x86pagefault (tf); break;
         case E_GP: panic ("GP");
+        case 0x80:      /* syscall */
+                   syscallint80 (tf);
+                   break;
         default:
                    err = handleirq (tf->trapno);
                    if (err)
