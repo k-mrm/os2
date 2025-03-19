@@ -3,6 +3,7 @@
 #include <kalloc.h>
 #include <panic.h>
 #include <mm.h>
+#include <proc.h>
 #include <sysmem.h>
 #include <string.h>
 #include <x86/mm.h>
@@ -109,6 +110,7 @@ Vas *
 uservas (void)
 {
         Vas *vas;
+        void *stack;
 
         vas = alloc ();
         vas->pgdir = zalloc ();
@@ -117,7 +119,21 @@ uservas (void)
         vas->lowestlevel = kernvas.lowestlevel;
         vas->user = true;
 
+        stack = zalloc ();
+        mappages (vas, USTACKBOTTOM, V2P (stack), PAGESIZE,
+                  pnormal () | pwritable (), false);
+        vas->ustack = stack;
+        vas->ustacksize = PAGESIZE;
+
         return vas;
+}
+
+void
+freeuvas (Vas *vas)
+{
+        // TODO
+        free (vas->pgdir);
+        free (vas);
 }
 
 void *

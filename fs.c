@@ -4,6 +4,7 @@
 #include <list.h>
 #include <string.h>
 #include <proc.h>
+#include <syscall.h>
 
 #define KPREFIX "fs:"
 
@@ -124,7 +125,7 @@ skippath (char *path, char *name, int *err)
         {
                 name++;
 
-                if (++len > 50)
+                if (++len > 128)
                 {
                         *err = 1;
                         return NULL;
@@ -163,7 +164,6 @@ traverse (FS *fs, INODE *pi, char *path, char *name)
         return traverse (fs, pi, path, name);
 
 ret:
-        iput (pi);
         return pi;
 err:
         iput (pi);
@@ -171,7 +171,7 @@ err:
 }
 
 INODE *
-path2ino (char *path)
+path2ino (const char *path)
 {
         Cpu *cpu;
         Proc *cp;
@@ -259,13 +259,27 @@ fsdbg (void)
                 trace ("found inum: %d\n", ino->inum);
                 fs->op->readi (ino, buf, 0, 127);
                 trace ("%s\n", buf);
-                iput (ino);
+                // iput (ino);
         }
         else
         {
                 trace ("not found\n");
         }
 }
+
+// stub
+static int
+write (int fd, const char * USER buf, unsigned long size)
+{
+        int n = 0;
+        if (fd == 1)
+        {
+                n = printk ("%s", buf);
+        }
+        return n;
+}
+
+SYSCALL_DEFINE (SYS_WRITE, write);
 
 void INIT
 initfs (void)

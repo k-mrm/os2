@@ -17,6 +17,11 @@ bool x86nxe;
 void
 switchvas (Vas *vas)
 {
+        if (!vas)
+        {
+                panic ("null vas");
+        }
+
         Phys pgtpa = V2P (vas->pgdir);
         if (vas->user)
         {

@@ -2,7 +2,9 @@
 #define _CONSOLE_H
 
 #include <types.h>
+#include <compiler.h>
 #include <device.h>
+#include <irq.h>
 
 typedef struct EarlyConsole     EarlyConsole;
 typedef struct Console  Console;
@@ -19,13 +21,16 @@ struct Console
 
         void    *priv;
 
-        int     (*write) (Console *, const char *, uint);
-        int     (*read) (Console *, char *, uint);
+        int     (*write) (Console *cs, const char *buf, uint n);
+        int     (*read) (Console *cs, char *buf, uint n);
+        int     (*csirq) (Console *cs, Irq *irq);
 };
 
 extern Console *console;
 
 int probeconsole (Device *dev);
 void earlyconsole (EarlyConsole *ec);
+
+int consoleirq (Irq *irq);
 
 #endif  // _CONSOLE_H

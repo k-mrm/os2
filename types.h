@@ -11,6 +11,7 @@ typedef unsigned char   u8;
 typedef signed char     i8;
 typedef unsigned int    uint;
 typedef unsigned long   ulong;
+typedef unsigned char   uchar;
 
 /* physical address */
 typedef ulong   Phys;
@@ -37,5 +38,7 @@ typedef _Bool   bool;
 #define	KiB	(1024)
 #define	MiB	(1024 * 1024)
 #define	GiB	(1024 * 1024 * 1024)
+
+#define USER
 
 #endif    // _TYPES_H

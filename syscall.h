@@ -18,8 +18,9 @@ typedef struct SYSCALL
         }
 
 #define SYS_EMPTY       0
-#define SYS_READ        1
-#define SYS_WRITE       2
+#define SYS_EXEC        1
+#define SYS_READ        2
+#define SYS_WRITE       3
 
 void syscallinit (void) INIT;
 void *syscall (int sysno, void *arg1, void *arg2, void *arg3, void *arg4, void *arg5, void *arg6);

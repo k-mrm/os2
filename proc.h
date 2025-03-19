@@ -37,6 +37,8 @@ struct Proc
         Trapframe       *tf;
         Context         context;
         void            *kstack;
+        void            *ustack;
+        int             ustacksize;
         void            *ksp;
         INODE           *cwd;
 

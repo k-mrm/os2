@@ -271,6 +271,7 @@ ext2inodeblock (INODE *ino, int bi)
 
         if (bi < 12)
         {
+                trace ("INODE SIZE %d %d\n", ino->size, ino->inum);
                 return bread (fs->block, ino->block[bi]);
         }
         else
@@ -360,12 +361,19 @@ ext2readi (INODE *ino, unsigned char *buf, u64 off, u64 size)
 
                 memcpy (buf, b->data + offblkoff, cpsize);
 
+                if (ino->size == 0)
+                        panic ("!?188");
                 buf += cpsize;
                 size -= cpsize;
                 offblkoff = 0;
 
                 brelease (b);
+                if (ino->size == 0)
+                        panic ("!?100");
         }
+
+        if (ino->size == 0)
+                panic ("!?");
 
         return buf - base;
 }

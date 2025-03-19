@@ -16,10 +16,13 @@ typedef struct Vas  Vas;
  */
 struct Vas
 {
-        PageTable pgdir;
-        uint      level;
-        uint      lowestlevel;
-        bool      user;
+        PageTable       pgdir;
+        uint            level;
+        uint            lowestlevel;
+        bool            user;
+
+        void            *ustack;
+        u64             ustacksize;
 };
 
 void kernelmap (void) INIT;
@@ -28,5 +31,9 @@ Vas *kernelas (void);
 Vas *allocvas (void);
 void mappages (Vas *vas, ulong va, Phys pa, ulong size, ulong flags, bool remap);
 Vas *uservas (void);
+void freeuvas (Vas *vas);
+
+#define USTACKTOP     0x7ffffff000
+#define USTACKBOTTOM  (USTACKTOP - PAGESIZE)
 
 #endif  // __MM_H

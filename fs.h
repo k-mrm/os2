@@ -118,6 +118,6 @@ void regfsif (FS_IF *op);
 INODE *iget (FS *fs, int inum);
 void iput (INODE *ino);
 
-INODE *path2ino (char *path);
+INODE *path2ino (const char *path);
 
 #endif  // _FS_H

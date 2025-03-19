@@ -253,7 +253,14 @@ syscallint80 (Trapframe *tf)
 void 
 trap (Trapframe *tf)
 {
+        Cpu *cpu = mycpu ();
+        Proc *proc = cpu->currentproc;
         int err;
+
+        if (proc)
+        {
+                proc->tf = tf;
+        }
 
         // trace ("trap from %d %d(err=0x%x) %p\n", tf->r15, tf->trapno, tf->errcode, tf->rip);
         switch (tf->trapno)

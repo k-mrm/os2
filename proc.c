@@ -6,6 +6,9 @@
 #include <string.h>
 #include <proc.h>
 #include <list.h>
+#include <elf.h>
+#include <syscall.h>
+#include <timer.h>
 #include <x86/arch.h>
 #include <x86/mm.h>
 #include <x86/trap.h>
@@ -36,9 +39,6 @@ static Proc       *kidle;
 static uint       procidtable = 0;
 static RunQueue   rq;
 static PFreeList  freelist;
-
-#define USTACKTOP     0x7ffffff000
-#define USTACKBOTTOM  (USTACKTOP - PAGESIZE)
 
 static void
 rqinit (RunQueue *r)
@@ -100,7 +100,6 @@ initnewproctf (Proc *p, Trapframe *tf)
                 );
 
                 tf->rip     = 0x1000;
-                tf->rdi     = 0;
                 tf->cs      = cs;
                 tf->rflags  = rflags | EFLAGS_IF;
                 tf->ss      = ss;
@@ -239,7 +238,7 @@ inituserproc (void)
         extern char _binary_initcode_start[];
         extern char _binary_initcode_end[];
         int isize = _binary_initcode_end - _binary_initcode_start;
-        void *stack, *initcode;
+        void *initcode;
 
         p = newproc ("init0", NULL, true, NULL, NULL);
         if (!p)
@@ -247,10 +246,6 @@ inituserproc (void)
 
         p->as = uservas ();
         p->cwd = path2ino ("/");
-
-        stack = zalloc ();
-        mappages (p->as, USTACKBOTTOM, V2P (stack), PAGESIZE,
-                  pnormal () | pwritable (), false);
 
         initcode = zalloc ();
         memcpy (initcode, _binary_initcode_start, isize);
@@ -279,6 +274,121 @@ initprocess (void)
 
         inituserproc ();
 }
+
+static int
+exec (const char *path, const char **argv)
+{
+        INODE *elf;
+        FS *fs;
+        EHDR ehdr;
+        PHDR phdr;
+        int status, size = 0;
+        u64 phoff, flags;
+        Cpu *cpu = mycpu ();
+        Proc *proc = cpu->currentproc;
+        void *p;
+        int uargc = 0;
+        Vas *as = uservas ();
+        Vas *oldas = proc->as;
+        void *top = as->ustack + PAGESIZE;
+        void *sp = top;
+        u64 args[10] = {0};
+
+        elf = path2ino (path);
+        if (!elf)
+        {
+                goto err;
+        }
+
+        fs = elf->fs;
+        status = fs->op->readi (elf, (uchar *)&ehdr, 0, sizeof ehdr);
+        if (status != sizeof (ehdr))
+        {
+                goto err;
+        }
+        if (!iself (&ehdr))
+        {
+                goto err;
+        }
+        if (ehdr.e_type != ET_EXEC)
+        {
+                goto err;
+        }
+
+        phoff = ehdr.e_phoff;
+        for (int i = 0; i < ehdr.e_phnum; i++, phoff += sizeof phdr)
+        {
+                p = zalloc ();
+                flags = 0;
+
+                status = fs->op->readi (elf, (uchar *)&phdr, phoff, sizeof phdr);
+                if (status != sizeof phdr)
+                {
+                        goto err;
+                }
+                if (phdr.p_type != PT_LOAD)
+                {
+                        continue;
+                }
+
+                if (!PAGEALIGNED (phdr.p_vaddr))
+                        panic ("o");
+
+                flags |= phdr.p_flags & PF_X ? pexecutable () | preadonly () : 0;
+                flags |= phdr.p_flags & PF_W ? pwritable () : 0;
+
+                size += fs->op->readi (elf, p, phdr.p_offset, phdr.p_filesz);
+                mappages (as, phdr.p_vaddr, V2P (p), PAGESIZE, pnormal () | flags, false);
+        }
+
+        // setup arguments
+        for (; argv && argv[uargc]; uargc++)
+        {
+                sp -= strlen (argv[uargc]) + 1;
+                sp = (void *)((u64)sp & ~0xf);
+                if (sp < as->ustack)
+                {
+                        goto err;
+                }
+
+                memcpy (sp, argv[uargc], strlen (argv[uargc]));
+                args[uargc] = USTACKTOP - (top - sp);
+        }
+
+        sp -= sizeof (args[0]) * (uargc + 1);
+        sp = (void *)((u64)sp & ~0xf);
+        if (sp < as->ustack)
+        {
+                goto err;
+        }
+        memcpy (sp, args, sizeof (args[0]) * (uargc + 1));
+
+        proc->tf->rip = ehdr.e_entry;
+        proc->tf->rdi = uargc + 1;
+        proc->tf->rsi = USTACKTOP - (top - sp);
+        proc->tf->rsp = USTACKTOP - (top - sp);
+        proc->as = as;
+
+        trace ("exec %s rip %#x rdi %d rsp %#x\n", path, proc->tf->rip, proc->tf->rdi, proc->tf->rsp);
+
+        freeuvas (oldas);
+        switchvas (proc->as);
+
+        return 0;
+err:
+        panic ("err");
+        freeuvas (as);
+        return -1;
+}
+
+static int
+sysexec (const char * USER path, const char ** USER argv)
+{
+        // TODO: copyuser
+        return exec (path, argv);
+}
+
+SYSCALL_DEFINE (SYS_EXEC, sysexec);
 
 int NORETURN
 idleprocess (void *a)
