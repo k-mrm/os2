@@ -361,10 +361,10 @@ exec (const char *path, const char **argv)
         {
                 goto err;
         }
-        memcpy (sp, args, sizeof (args[0]) * (uargc + 1));
+        memcpy (sp, args, sizeof (args[0]) * uargc);
 
         proc->tf->rip = ehdr.e_entry;
-        proc->tf->rdi = uargc + 1;
+        proc->tf->rdi = uargc;
         proc->tf->rsi = USTACKTOP - (top - sp);
         proc->tf->rsp = USTACKTOP - (top - sp);
         proc->as = as;
